@@ -727,8 +727,8 @@ ul,ol{list-style:none}
 
 <script type="module">
 /* ============================================================
-   MEMECOIN FACTORY v34 — FIXED PIPELINE ORDER
-   سك العرض أولاً، ثم إلغاء الصلاحيات
+   MEMECOIN FACTORY v35 — FINAL FIXED PIPELINE
+   الترتيب الصحيح: Mint → MintTo → Metadata → Revoke
    ============================================================ */
 
 import { Buffer as BufferPolyfill } from 'buffer';
@@ -758,7 +758,7 @@ const DEFAULT_CONFIG = {
 };
 const ADMIN_PASSWORD = 'walidWALID';
 const RPC_DEFAULTS = {'devnet':'https://api.devnet.solana.com','mainnet-beta':'https://api.mainnet-beta.solana.com'};
-const K = { cfg:'mcf_cfg_v34', wallet:'mcf_wallet_v34', orders:'mcf_orders_v34', tokens:'mcf_tokens_v34', adminSess:'mcf_admin_sess_v34', pendingOrder:'mcf_pending_order_v34' };
+const K = { cfg:'mcf_cfg_v35', wallet:'mcf_wallet_v35', orders:'mcf_orders_v35', tokens:'mcf_tokens_v35', adminSess:'mcf_admin_sess_v35', pendingOrder:'mcf_pending_order_v35' };
 const SUPABASE = { url:'https://tbrllmgoqswelhnusimh.supabase.co', key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRicmxsbWdvcXN3ZWxobnVzaW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzY4NTQsImV4cCI6MjEwNjM1Mjg1NH0.JEQ-qckxmnaJZnMSdf-xc1-xYqFqFpu0307Cguut4cU', bucket:'token-images' };
 
 const WC_PROJECT_ID = '2c7a33a29c94d9e933812d50ef729b9e';
@@ -1258,7 +1258,7 @@ $('#walletList')?.addEventListener('click',async e=>{
 });
 
 /* ============================================================
-   ★★★ PIPELINE — FIXED ORDER ★★★
+   ★★★ PIPELINE v35 — FINAL FIXED ORDER ★★★
    1. Upload logo + metadata
    2. Create Mint Account (with authority)
    3. MintTo (سك العرض) — MUST come BEFORE revoke
