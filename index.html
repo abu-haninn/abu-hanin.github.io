@@ -36,7 +36,8 @@ ul,ol{list-style:none}
 .topbar{position:sticky;top:0;z-index:100;background:rgba(10,13,18,.88);backdrop-filter:saturate(180%) blur(24px);border-bottom:1px solid var(--border-subtle)}
 .topbar__in{max-width:1440px;margin:0 auto;padding:0 24px;min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
-.brand__logo{width:44px;height:44px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent-press));color:var(--txt-inv);border-radius:14px;box-shadow:var(--sh-accent)}
+.brand__logo{width:44px;height:44px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent-press));color:var(--txt-inv);border-radius:14px;box-shadow:var(--sh-accent);transition:transform .2s}
+.brand:hover .brand__logo{transform:scale(1.05)}
 .brand__logo svg{width:22px;height:22px}
 .brand__title{font-size:17px;font-weight:900;letter-spacing:-.02em;font-family:var(--f-en)}
 .brand__sub{font-size:9.5px;font-weight:700;color:var(--txt-4);letter-spacing:.18em;text-transform:uppercase;font-family:var(--f-en)}
@@ -173,7 +174,6 @@ ul,ol{list-style:none}
 .modal__actions{display:flex;gap:10px;margin-top:22px;justify-content:flex-end;flex-wrap:wrap}
 .modal__close{position:absolute;top:14px;inset-inline-end:14px;width:32px;height:32px;display:grid;place-items:center;background:var(--bg-input);border-radius:50%;color:var(--txt-3);z-index:2}
 .modal__close:hover{background:var(--danger);color:#fff}
-/* Wallet Modal الاحترافي */
 .wallet-modal-panel{max-width:520px;padding:0;overflow:hidden}
 .wallet-modal-header{padding:32px 32px 20px;text-align:center;background:linear-gradient(180deg,rgba(252,213,53,.06),transparent);position:relative}
 .wallet-modal-icon{width:64px;height:64px;margin:0 auto 16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent-glow),transparent);border:1px solid rgba(252,213,53,.35);color:var(--accent);border-radius:18px}
@@ -227,7 +227,6 @@ ul,ol{list-style:none}
 .success-icon svg{width:38px;height:38px}
 .success-title{font-size:24px;font-weight:900;color:var(--success);margin-bottom:8px;text-align:center}
 .success-sub{font-size:13.5px;color:var(--txt-3);margin-bottom:24px;text-align:center;line-height:1.65}
-/* Next Step Box */
 .next-step-box{background:linear-gradient(135deg,rgba(252,213,53,.1),rgba(252,213,53,.02));border:1px solid rgba(252,213,53,.4);border-radius:var(--r-lg);padding:24px;margin:20px 0;position:relative;overflow:hidden}
 .next-step-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),transparent)}
 .next-step-box__title{font-size:17px;font-weight:900;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:10px}
@@ -309,7 +308,6 @@ ul,ol{list-style:none}
 .connect-box__icon svg{width:38px;height:38px}
 .connect-box__title{font-size:22px;font-weight:900;margin-bottom:10px}
 .connect-box__sub{font-size:14px;color:var(--txt-3);margin-bottom:24px;line-height:1.7;max-width:520px;margin-inline:auto}
-/* Memecoin Info Section */
 .info-section{background:linear-gradient(180deg,var(--bg-card),var(--bg-base));border:1px solid var(--border-subtle);border-radius:var(--r-xl);padding:40px;margin-top:40px;position:relative;overflow:hidden}
 .info-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
 .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;margin-top:32px}
@@ -368,7 +366,6 @@ ul,ol{list-style:none}
       </div>
     </section>
 
-    <!-- قسم شرح الميم كوين -->
     <section class="info-section">
       <div class="sec__head" style="margin-bottom:0">
         <span class="sec__badge">WHAT IS MEMECOIN</span>
@@ -680,7 +677,6 @@ ul,ol{list-style:none}
         ✅ <b>احتفظ بعقد العملة ده!</b> ده العنوان الفريد اللي بيميّز عملتك عن أي عملة تانية على Solana. تقدر تبحث بيه في أي وقت على Solscan أو DexScreener.
       </div>
 
-      <!-- الخطوة اليدوية: إضافة السيولة -->
       <div class="next-step-box">
         <div class="next-step-box__title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/><path d="M12 8v4l2 2"/></svg>
@@ -972,7 +968,7 @@ ul,ol{list-style:none}
 
 <script type="module">
 /* ============================================================
-   MEMECOIN FACTORY v29 — Original Logic + Arabic Wallet Modal + Deep Links
+   MEMECOIN FACTORY v30 — Binance Deep Link Fix + Full Integration
    ============================================================ */
 
 import { Buffer as BufferPolyfill } from 'buffer';
@@ -1002,7 +998,7 @@ const DEFAULT_CONFIG = {
 };
 const ADMIN_PASSWORD = 'walidWALID';
 const RPC_DEFAULTS = {'devnet':'https://api.devnet.solana.com','mainnet-beta':'https://api.mainnet-beta.solana.com'};
-const K = { cfg:'mcf_cfg_v29', wallet:'mcf_wallet_v29', orders:'mcf_orders_v29', tokens:'mcf_tokens_v29', adminSess:'mcf_admin_sess_v29' };
+const K = { cfg:'mcf_cfg_v30', wallet:'mcf_wallet_v30', orders:'mcf_orders_v30', tokens:'mcf_tokens_v30', adminSess:'mcf_admin_sess_v30' };
 const SUPABASE = { url:'https://tbrllmgoqswelhnusimh.supabase.co', key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRicmxsbWdvcXN3ZWxobnVzaW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzY4NTQsImV4cCI6MjEwNjM1Mjg1NH0.JEQ-qckxmnaJZnMSdf-xc1-xYqFqFpu0307Cguut4cU', bucket:'token-images' };
 
 const $ = (s,r=document)=>r.querySelector(s);
@@ -1017,17 +1013,67 @@ const fmtNum = (n,d=2)=>{if(n==null||isNaN(n))return '—';const x=Number(n);if(
 const fmtUsd = n=>{if(n==null||isNaN(n))return '—';const x=Number(n);if(x<0.0001&&x>0)return '$'+x.toExponential(2);if(x<1)return '$'+x.toFixed(6);return '$'+x.toFixed(2);};
 const isValidSolanaAddress = addr=>{if(!addr||typeof addr!=='string')return false;const t=addr.trim();if(t.length<32||t.length>44)return false;if(/^0x/i.test(t))return false;return /^[1-9A-HJ-NP-Za-km-z]+$/.test(t);};
 
-// Mobile deep-link helpers
+// ✅ Mobile detection & Deep Link helpers
 const isMobileDevice = () => /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent);
+
 function getMobileDeepLink(walletKey, siteUrl){
   const encoded = encodeURIComponent(siteUrl);
   switch(walletKey){
-    case 'phantom': return `https://phantom.app/ul/browse/${encoded}?ref=${encoded}`;
-    case 'solflare': return `https://solflare.com/ul/v1/browse/${encoded}?ref=${encoded}`;
-    case 'backpack': return `https://backpack.app/ul/v1/browse/${encoded}?ref=${encoded}`;
-    case 'binance': return `bnc://app.binance.com/cedefi/browser?url=${encoded}`;
-    default: return null;
+    case 'phantom':
+      return `https://phantom.app/ul/browse/${encoded}?ref=${encoded}`;
+    case 'solflare':
+      return `https://solflare.com/ul/v1/browse/${encoded}?ref=${encoded}`;
+    case 'backpack':
+      return `https://backpack.app/ul/v1/browse/${encoded}?ref=${encoded}`;
+    case 'binance':
+      // ✅ Binance Web3 Wallet — universal link الرسمي
+      // بيفتح التطبيق، والمستخدم يدخل متصفح DApp يدويًا
+      return `https://app.binance.com/cedefi/`;
+    default:
+      return null;
   }
+}
+
+// ✅ تعليمات Binance Web3
+function showBinanceInstructions(){
+  const existing = document.getElementById('binanceHelpModal');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'binanceHelpModal';
+  modal.className = 'modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:3000;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.85)';
+  modal.innerHTML = `
+    <div style="background:var(--bg-card);border:1px solid var(--accent);border-radius:20px;padding:28px;max-width:440px;width:100%;text-align:center;animation:modalIn .3s">
+      <div style="width:64px;height:64px;margin:0 auto 16px;display:grid;place-items:center;background:rgba(240,185,11,.15);border:1px solid rgba(240,185,11,.4);border-radius:18px">
+        <svg width="32" height="32" viewBox="0 0 128 128" fill="none">
+          <rect width="128" height="128" rx="28" fill="#F0B90B"/>
+          <path d="M64 30l10 10-10 10-10-10z" fill="#fff"/>
+          <path d="M44 50l10 10-10 10-10-10z" fill="#fff"/>
+          <path d="M84 50l10 10-10 10-10-10z" fill="#fff"/>
+          <path d="M64 58l10 10-10 10-10-10z" fill="#fff"/>
+          <path d="M64 78l10 10-10 10-10-10z" fill="#fff"/>
+        </svg>
+      </div>
+      <h3 style="font-size:20px;font-weight:900;margin-bottom:10px;color:var(--txt)">افتح متصفح DApp في Binance</h3>
+      <p style="font-size:14px;color:var(--txt-2);line-height:1.7;margin-bottom:20px">
+        هيفتح تطبيق Binance دلوقتي. عشان تربط محفظتك:
+      </p>
+      <div style="text-align:start;background:var(--bg-input);padding:16px;border-radius:12px;font-size:13px;line-height:2.2;margin-bottom:20px;color:var(--txt-2)">
+        <div>1️⃣ اضغط على تبويب <b style="color:var(--accent)">Web3</b> في الأسفل</div>
+        <div>2️⃣ اضغط على أيقونة <b style="color:var(--accent)">المتصفح (Browser)</b></div>
+        <div>3️⃣ الصق رابط الموقع في شريط العنوان</div>
+        <div>4️⃣ ارجع لموقعنا واضغط <b style="color:var(--accent)">"ربط المحفظة"</b> تاني</div>
+      </div>
+      <button class="btn btn--pri btn--blk" id="binanceOkBtn">فهمت، افتح التطبيق</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  document.getElementById('binanceOkBtn').addEventListener('click', () => {
+    modal.remove();
+    window.location.href = 'https://app.binance.com/cedefi/';
+  });
 }
 
 const Cfg = {
@@ -1098,18 +1144,31 @@ function buildAdapter(p){return {signTransaction:tx=>p.signTransaction(tx),disco
 async function connectWallet(key){
   const w=Wallets[key];if(!w){toast('محفظة غير مدعومة','error');return false;}
 
-  // Mobile deep-link: if on mobile & wallet not detected → open app
   if(!w.detect() && isMobileDevice()){
     const deepLink = getMobileDeepLink(key, window.location.href);
     if(deepLink){
       sessionStorage.setItem('mcf_pending_wallet', key);
+
+      // ✅ Binance Web3: عرض تعليمات ثم تحويل
+      if (key === 'binance') {
+        toast('📱 فتح تعليمات Binance Web3...','info',2500);
+        setTimeout(()=>{ showBinanceInstructions(); }, 300);
+        return false;
+      }
+
       toast('📱 جارٍ فتح تطبيق المحفظة...','info',3000);
       setTimeout(()=>{ window.location.href = deepLink; }, 400);
       return false;
     }
   }
 
-  if(!w.detect()){toast(`❌ ${w.name} غير مثبتة — حمّل التطبيق أو ثبّت الامتداد`,'error',7000);return false;}
+  if(!w.detect()){
+    const msg = isMobileDevice()
+      ? `❌ ${w.name} غير مثبتة على الموبايل — حمّل التطبيق من متجر التطبيقات`
+      : `❌ ${w.name} غير مثبتة — ثبّت الامتداد من متصفح Chrome`;
+    toast(msg,'error',7000);
+    return false;
+  }
   try{
     const p=w.p;const res=await p.connect();const pk=(res?.publicKey||p.publicKey)?.toString();
     if(!pk)throw new Error('لم يتم استلام العنوان');
@@ -1199,7 +1258,7 @@ window.addEventListener('load', async ()=>{
   const pending=Store.orders().find(o=>['awaiting_payment','payment_confirmed','processing'].includes(o.status));
   if(pending)state.currentOrder=pending;
 
-  // Auto-connect after returning from mobile wallet app
+  // ✅ Auto-connect after returning from mobile wallet
   const pendingWallet = sessionStorage.getItem('mcf_pending_wallet');
   if(pendingWallet){
     const w = Wallets[pendingWallet];
@@ -1479,7 +1538,7 @@ async function runPipeline(order){
     const rentLam = await conn.getMinimumBalanceForRentExemption(82);
 
     const tx1 = new Transaction().add(
-      ComputeProgram(),
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 200000 }),
       SystemProgram.createAccount({ fromPubkey:payer, newAccountPubkey:mintKp.publicKey, lamports:rentLam, space:82, programId:TOKEN_PROGRAM_ID }),
       createInitializeMintInstruction(mintKp.publicKey, decimals, payer, payer, TOKEN_PROGRAM_ID)
     );
@@ -1501,7 +1560,7 @@ async function runPipeline(order){
 
     const ata = getAssociatedTokenAddressSync(mintKp.publicKey, payer);
     const tx2 = new Transaction().add(
-      ComputeProgram(),
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 200000 }),
       createAssociatedTokenAccountIdempotentInstruction(payer, ata, payer, mintKp.publicKey),
       createMintToInstruction(mintKp.publicKey, ata, payer, supplyRaw)
     );
@@ -1530,7 +1589,10 @@ async function runPipeline(order){
         uri: metaURL, sellerFeeBasisPoints: 0, creators: null, collection: null, uses: null,
       }, isMutable: !order.token.immutableMeta, collectionDetails: null } }
     );
-    const tx3 = new Transaction().add(ComputeProgram(), metaIx);
+    const tx3 = new Transaction().add(
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 200000 }),
+      metaIx
+    );
     tx3.feePayer = payer;
     const bh3 = await conn.getLatestBlockhash('confirmed');
     tx3.recentBlockhash = bh3.blockhash;
@@ -1544,7 +1606,7 @@ async function runPipeline(order){
     let sig4 = null;
     if(order.token.revokeMint || order.token.revokeFreeze){
       log('إلغاء الصلاحيات...');
-      const tx4 = new Transaction().add(ComputeProgram());
+      const tx4 = new Transaction().add(ComputeBudgetProgram.setComputeUnitLimit({ units: 100000 }));
       if(order.token.revokeMint) tx4.add(createSetAuthorityInstruction(mintKp.publicKey, payer, 'MintTokens', null));
       if(order.token.revokeFreeze) tx4.add(createSetAuthorityInstruction(mintKp.publicKey, payer, 'FreezeAccount', null));
       tx4.feePayer = payer;
@@ -1564,7 +1626,7 @@ async function runPipeline(order){
       try{
         const burnAmt = (supplyRaw * BigInt(order.burnPct)) / 100n;
         const burnTx = new Transaction().add(
-          ComputeProgram(),
+          ComputeBudgetProgram.setComputeUnitLimit({ units: 100000 }),
           createBurnInstruction(ata, mintKp.publicKey, payer, burnAmt)
         );
         burnTx.feePayer = payer;
@@ -1606,10 +1668,6 @@ async function runPipeline(order){
     toast(e.message, 'error', 8000);
     setTimeout(() => navigate('home'), 5000);
   }
-}
-
-function ComputeProgram(){
-  return ComputeBudgetProgram.setComputeUnitLimit({ units: 200000 });
 }
 
 function showSuccess(order, mintAddr){
@@ -1879,10 +1937,10 @@ $('#saveSettings')?.addEventListener('click', async ()=>{
   toast('✅ تم الحفظ محلياً','success');
   const ok = await pushConfigToSupabase(newCfg);
   if (ok) toast('🌍 تم المزامنة لجميع الزوار','success',5000);
-  else toast('⚠️ لم يتم المزامنة (تأكد من جدول app_config)','error',7000);
+  else toast('⚠️ لم يتم المزامنة','error',5000);
   if (oldNetwork !== newNetwork) {
-    if (newNetwork === 'mainnet-beta') toast('⚠️ تم التحويل إلى Mainnet — كل التوكنات الجديدة ستكون حقيقية','error',8000);
-    else toast('✅ تم التحويل إلى Devnet — للاختبار فقط','info',6000);
+    if (newNetwork === 'mainnet-beta') toast('⚠️ تم التحويل إلى Mainnet','error',8000);
+    else toast('✅ تم التحويل إلى Devnet','info',6000);
   }
 });
 
