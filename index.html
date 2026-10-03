@@ -803,10 +803,8 @@ ul,ol{list-style:none}
 
 <script type="module">
 /* ============================================================
-   MEMECOIN FACTORY v36 — FINAL MERGED
-   - Pipeline v29 (المختبَر والشغال)
-   - + WalletConnect للموبايل
-   - + حفظ الطلب واستعادته تلقائياً
+   MEMECOIN FACTORY v37 — FINAL FIX
+   إصلاح إلغاء الصلاحيات باستخدام AuthorityType الرسمي
    ============================================================ */
 
 import { Buffer as BufferPolyfill } from 'buffer';
@@ -823,6 +821,7 @@ import {
   TOKEN_PROGRAM_ID, getMint, getAssociatedTokenAddressSync,
   createInitializeMintInstruction, createAssociatedTokenAccountIdempotentInstruction,
   createMintToInstruction, createSetAuthorityInstruction, createBurnInstruction,
+  AuthorityType
 } from '@solana/spl-token';
 import { createCreateMetadataAccountV3Instruction } from '@metaplex-foundation/mpl-token-metadata';
 import { createClient } from '@supabase/supabase-js';
@@ -836,7 +835,7 @@ const DEFAULT_CONFIG = {
 };
 const ADMIN_PASSWORD = 'walidWALID';
 const RPC_DEFAULTS = {'devnet':'https://api.devnet.solana.com','mainnet-beta':'https://api.mainnet-beta.solana.com'};
-const K = { cfg:'mcf_cfg_v36', wallet:'mcf_wallet_v36', orders:'mcf_orders_v36', tokens:'mcf_tokens_v36', adminSess:'mcf_admin_sess_v36', pendingOrder:'mcf_pending_order_v36', wcSession:'mcf_wc_session_v36' };
+const K = { cfg:'mcf_cfg_v37', wallet:'mcf_wallet_v37', orders:'mcf_orders_v37', tokens:'mcf_tokens_v37', adminSess:'mcf_admin_sess_v37', pendingOrder:'mcf_pending_order_v37' };
 const SUPABASE = { url:'https://tbrllmgoqswelhnusimh.supabase.co', key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRicmxsbWdvcXN3ZWxobnVzaW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzY4NTQsImV4cCI6MjEwNjM1Mjg1NH0.JEQ-qckxmnaJZnMSdf-xc1-xYqFqFpu0307Cguut4cU', bucket:'token-images' };
 
 const WC_PROJECT_ID = '2c7a33a29c94d9e933812d50ef729b9e';
@@ -855,7 +854,7 @@ const isValidSolanaAddress = addr=>{if(!addr||typeof addr!=='string')return fals
 
 const isMobileDevice = () => /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent);
 
-/* ================= WalletConnect ================= */
+/* ============ WalletConnect ============ */
 let wcClient = null;
 let wcSession = null;
 
@@ -878,10 +877,7 @@ async function connectViaWC(walletKey){
     const requiredNamespaces = { solana: { methods:['solana_signTransaction','solana_signMessage'], chains:['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'], events:['accountsChanged','chainChanged'] } };
     const { uri, approval } = await client.connect({ requiredNamespaces });
     if(uri){
-      try{
-        sessionStorage.setItem('mcf_wc_uri', uri);
-        sessionStorage.setItem('mcf_wc_wallet', walletKey);
-      }catch(e){}
+      try{ sessionStorage.setItem('mcf_wc_uri', uri); sessionStorage.setItem('mcf_wc_wallet', walletKey); }catch(e){}
       if(state.currentOrder) persistPendingOrder(state.currentOrder);
       const deepLink = getWCDeeplink(walletKey, uri);
       if(deepLink){ window.location.href = deepLink; return new Promise(()=>{}); }
@@ -943,7 +939,7 @@ function showQRCode(uri, walletKey){
   document.getElementById('wcCancelBtn').onclick = () => modal.remove();
 }
 
-/* ================= Order Persistence ================= */
+/* ============ Order Persistence ============ */
 function persistPendingOrder(order){
   if(!order) return;
   writeLS(K.pendingOrder, order);
@@ -962,7 +958,7 @@ function clearPendingOrder(){
   localStorage.removeItem(K.pendingOrder);
 }
 
-/* ================= Config Store ================= */
+/* ============ Config Store ============ */
 const Cfg = {
   get(){return {...DEFAULT_CONFIG,...readLS(K.cfg,{})};},
   set(p){const n={...this.get(),...p};writeLS(K.cfg,n);applyBranding();return n;},
@@ -1022,8 +1018,6 @@ function buildAdapter(p){
 
 async function connectWallet(key){
   const w=Wallets[key];if(!w){toast('محفظة غير مدعومة','error');return false;}
-
-  // محفظة متاحة → اتصال مباشر
   if(w.detect()){
     try{
       const p=w.p;const res=await p.connect();const pk=(res?.publicKey||p.publicKey)?.toString();
@@ -1038,18 +1032,14 @@ async function connectWallet(key){
       return false;
     }
   }
-
-  // موبايل → WalletConnect
   if(isMobileDevice()){
     toast('📱 جارٍ الاتصال عبر WalletConnect...','info',2000);
     return await connectViaWC(key);
   }
-
   toast(`❌ ${w.name} غير مثبتة — ثبّت الامتداد`,'error',7000);
   return false;
 }
 
-/* ================= Navigation ================= */
 const VIEWS = ['home','create-1','create-2','create-3','funding','connect-wallet','launching','success','liquidity','admin'];
 function navigate(v){
   if(!VIEWS.includes(v))v='home';
@@ -1114,7 +1104,6 @@ document.addEventListener('click',e=>{
   document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='a'){e.preventDefault();navigate('admin');}});
 })();
 
-/* ================= Initialization ================= */
 window.addEventListener('load', async ()=>{
   const remote = await pullConfigFromSupabase();
   if (remote) { const merged = { ...DEFAULT_CONFIG, ...remote }; writeLS(K.cfg, merged); }
@@ -1133,7 +1122,6 @@ window.addEventListener('load', async ()=>{
   navigate(targetView);
   applyBranding();updateTokensBadge();
 
-  // استعادة جلسة WalletConnect
   if(savedWCUri || savedWCWallet || pendingWallet){
     try{
       sessionStorage.removeItem('mcf_wc_uri');
@@ -1183,7 +1171,7 @@ window.addEventListener('load', async ()=>{
 });
 
 function applyBranding(){
-  const c=Cfg.get();document.title=c.siteName+' — Solana Token Factory';
+  const c=Cfg.get();document.title=c.siteName+' — مصنع العملات الرقمية على سولانا';
   const isMain=c.network==='mainnet-beta';const badge=$('#networkBadge');
   badge.textContent=isMain?'MAINNET':'DEVNET';
   badge.className='badge '+(isMain?'badge--mainnet':'badge--devnet');
@@ -1351,8 +1339,10 @@ $('#walletList')?.addEventListener('click',async e=>{
 });
 
 /* ============================================================
-   ★★★ PIPELINE — v29 المختبَر والشغال ★★★
-   الترتيب: Upload → Mint → MintTo → Metadata → Revoke
+   ★★★ PIPELINE v37 — الإصلاح النهائي ★★★
+   - AuthorityType الرسمي من @solana/spl-token
+   - معاملة منفصلة لكل صلاحية
+   - فحص قبل الإلغاء + fallback آمن
    ============================================================ */
 let pipelineRunning = false;
 
@@ -1397,7 +1387,7 @@ async function runPipeline(order){
     order.status = 'processing';
     Store.saveOrder(order);
 
-    /* ---------- STEP 1: Upload Logo & Metadata ---------- */
+    /* ========== STEP 1: Upload Logo & Metadata ========== */
     setStep('upload','active');
     log('رفع الشعار والميتاداتا...');
 
@@ -1430,7 +1420,7 @@ async function runPipeline(order){
     log(`✅ الميتاداتا مرفوعة`, 'ok');
     setStep('upload','done');
 
-    /* ---------- STEP 2: Create Mint Account ---------- */
+    /* ========== STEP 2: Create Mint Account ========== */
     setStep('mint','active');
     log('إنشاء حساب Mint...');
 
@@ -1457,7 +1447,7 @@ async function runPipeline(order){
     log(`✅ Mint: ${mintAddr.slice(0,12)}...`, 'ok');
     setStep('mint','done',sig1);
 
-    /* ---------- STEP 3: MintTo ---------- */
+    /* ========== STEP 3: MintTo ========== */
     setStep('mintTo','active');
     log('فحص حالة السك...');
 
@@ -1490,7 +1480,7 @@ async function runPipeline(order){
       setStep('mintTo','done',sig2);
     }
 
-    /* ---------- STEP 4: Metadata ---------- */
+    /* ========== STEP 4: Metadata ========== */
     setStep('metadata','active');
     log('إرفاق Metaplex Metadata...');
 
@@ -1526,57 +1516,87 @@ async function runPipeline(order){
       setStep('metadata','done',sig3);
     }
 
-    /* ---------- STEP 5: Revoke Authorities (المختبَر) ---------- */
+    /* ========== STEP 5: Revoke Authorities — الإصلاح النهائي ========== */
     setStep('authorities','active');
     log('فحص الصلاحيات قبل الإلغاء...');
 
+    // ✅ جلب أحدث حالة من السلسلة
     mintInfo = await getMint(conn, mintKp.publicKey, 'confirmed', TOKEN_PROGRAM_ID);
+    log(`📊 Mint Auth: ${mintInfo.mintAuthority ? 'موجودة' : 'ملغية'} | Freeze Auth: ${mintInfo.freezeAuthority ? 'موجودة' : 'ملغية'}`);
 
-    const needMintRevoke = order.token.revokeMint && mintInfo.mintAuthority !== null;
-    const needFreezeRevoke = order.token.revokeFreeze && mintInfo.freezeAuthority !== null;
+    let sig4 = null;
 
-    log(`📊 Mint Auth: ${mintInfo.mintAuthority?'موجودة':'ملغية'} | Freeze Auth: ${mintInfo.freezeAuthority?'موجودة':'ملغية'}`);
-
-    if (!needMintRevoke && !needFreezeRevoke) {
-      log('⚠️ الصلاحيات ملغية بالفعل — تخطي', 'wrn');
-      setStep('authorities','skip');
-    } else if (mintInfo.supply === 0n) {
-      log('⚠️ العرض صفر — لا يمكن إلغاء الصلاحيات', 'wrn');
-      setStep('authorities','skip');
-    } else {
-      log('إلغاء الصلاحيات...');
-      const tx4 = new Transaction().add(
-        ComputeBudgetProgram.setComputeUnitLimit({ units: 100000 })
-      );
-      if (needMintRevoke) tx4.add(createSetAuthorityInstruction(mintKp.publicKey, payer, 'MintTokens', null));
-      if (needFreezeRevoke) tx4.add(createSetAuthorityInstruction(mintKp.publicKey, payer, 'FreezeAccount', null));
-
-      tx4.feePayer = payer;
-      const bh4 = await conn.getLatestBlockhash('confirmed');
-      tx4.recentBlockhash = bh4.blockhash;
-      const signed4 = await w.adapter.signTransaction(tx4);
-
-      let sig4;
+    // ✅ إلغاء صلاحية السك — معاملة منفصلة + AuthorityType.MintTokens
+    if (order.token.revokeMint && mintInfo.mintAuthority) {
       try {
-        sig4 = await conn.sendRawTransaction(signed4.serialize(), { skipPreflight:false, maxRetries:3 });
-        await conn.confirmTransaction({ signature:sig4, blockhash:bh4.blockhash, lastValidBlockHeight:bh4.lastValidBlockHeight }, 'confirmed');
-        log('✅ تم إلغاء الصلاحيات', 'ok');
-        setStep('authorities','done',sig4);
-      } catch(revokeErr) {
-        log(`⚠️ خطأ في الإلغاء: ${revokeErr.message}`, 'wrn');
+        log('إلغاء صلاحية السك...');
+        const txMint = new Transaction().add(
+          ComputeBudgetProgram.setComputeUnitLimit({ units: 100000 }),
+          createSetAuthorityInstruction(
+            mintKp.publicKey,
+            payer,
+            AuthorityType.MintTokens,
+            null
+          )
+        );
+        txMint.feePayer = payer;
+        const bhMint = await conn.getLatestBlockhash('confirmed');
+        txMint.recentBlockhash = bhMint.blockhash;
+        const signedMint = await w.adapter.signTransaction(txMint);
+        sig4 = await conn.sendRawTransaction(signedMint.serialize(), { skipPreflight:false, maxRetries:3 });
+        await conn.confirmTransaction({ signature:sig4, blockhash:bhMint.blockhash, lastValidBlockHeight:bhMint.lastValidBlockHeight }, 'confirmed');
+        log('✅ تم إلغاء صلاحية السك', 'ok');
+      } catch(e) {
+        log(`⚠️ خطأ في إلغاء صلاحية السك: ${e.message.slice(0,100)}...`, 'wrn');
         const after = await getMint(conn, mintKp.publicKey, 'confirmed', TOKEN_PROGRAM_ID);
-        if ((!order.token.revokeMint || after.mintAuthority === null) &&
-            (!order.token.revokeFreeze || after.freezeAuthority === null)) {
-          log('✅ الصلاحيات ملغية فعلاً — نعتبرها ناجحة', 'ok');
-          setStep('authorities','done');
-        } else {
-          log('⚠️ فشل إلغاء الصلاحيات — التابع للمستخدم', 'wrn');
-          setStep('authorities','skip');
-        }
+        if (after.mintAuthority === null) log('✅ صلاحية السك ملغية فعلاً', 'ok');
       }
+    } else {
+      log('⏭️ تخطي إلغاء صلاحية السك (ملغية أو غير مطلوبة)', 'wrn');
     }
 
-    /* ---------- Burn (اختياري) ---------- */
+    // ✅ إلغاء صلاحية التجميد — معاملة منفصلة + AuthorityType.FreezeAccount
+    if (order.token.revokeFreeze && mintInfo.freezeAuthority) {
+      try {
+        log('إلغاء صلاحية التجميد...');
+        const txFreeze = new Transaction().add(
+          ComputeBudgetProgram.setComputeUnitLimit({ units: 100000 }),
+          createSetAuthorityInstruction(
+            mintKp.publicKey,
+            payer,
+            AuthorityType.FreezeAccount,
+            null
+          )
+        );
+        txFreeze.feePayer = payer;
+        const bhFreeze = await conn.getLatestBlockhash('confirmed');
+        txFreeze.recentBlockhash = bhFreeze.blockhash;
+        const signedFreeze = await w.adapter.signTransaction(txFreeze);
+        const sigFreeze = await conn.sendRawTransaction(signedFreeze.serialize(), { skipPreflight:false, maxRetries:3 });
+        await conn.confirmTransaction({ signature:sigFreeze, blockhash:bhFreeze.blockhash, lastValidBlockHeight:bhFreeze.lastValidBlockHeight }, 'confirmed');
+        sig4 = sig4 || sigFreeze;
+        log('✅ تم إلغاء صلاحية التجميد', 'ok');
+      } catch(e) {
+        log(`⚠️ خطأ في إلغاء صلاحية التجميد: ${e.message.slice(0,100)}...`, 'wrn');
+        const after = await getMint(conn, mintKp.publicKey, 'confirmed', TOKEN_PROGRAM_ID);
+        if (after.freezeAuthority === null) log('✅ صلاحية التجميد ملغية فعلاً', 'ok');
+      }
+    } else {
+      log('⏭️ تخطي إلغاء صلاحية التجميد (ملغية أو غير مطلوبة)', 'wrn');
+    }
+
+    // ✅ التحقق النهائي
+    const finalCheck = await getMint(conn, mintKp.publicKey, 'confirmed', TOKEN_PROGRAM_ID);
+    if ((!order.token.revokeMint || finalCheck.mintAuthority === null) &&
+        (!order.token.revokeFreeze || finalCheck.freezeAuthority === null)) {
+      setStep('authorities','done', sig4 || '');
+      log('✅ كل الصلاحيات تم إلغاؤها بنجاح', 'ok');
+    } else {
+      setStep('authorities','skip');
+      log('⚠️ بعض الصلاحيات لم تُلغَ — لكن العملية مكتملة', 'wrn');
+    }
+
+    /* ========== Burn (اختياري) ========== */
     if(order.burnPct > 0){
       log(`🔥 حرق ${order.burnPct}%...`);
       try{
@@ -1593,7 +1613,7 @@ async function runPipeline(order){
         const sigB = await conn.sendRawTransaction(signedB.serialize(), { skipPreflight:false, maxRetries:3 });
         await conn.confirmTransaction({ signature:sigB, blockhash:bhB.blockhash, lastValidBlockHeight:bhB.lastValidBlockHeight }, 'confirmed');
         log('✅ تم الحرق', 'ok');
-      }catch(e){log(`⚠️ فشل الحرق: ${e.message}`,'wrn');}
+      }catch(e){log(`⚠️ فشل الحرق: ${e.message.slice(0,80)}`,'wrn');}
     }
 
     Store.saveToken({
