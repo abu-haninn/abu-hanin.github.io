@@ -13,10 +13,13 @@
     "@solana/spl-token": "https://esm.sh/@solana/spl-token@0.4.9?external=@solana/web3.js",
     "@metaplex-foundation/mpl-token-metadata": "https://esm.sh/@metaplex-foundation/mpl-token-metadata@2.13.0?external=@solana/web3.js",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.45.4",
+    "@walletconnect/sign-client": "https://esm.sh/@walletconnect/sign-client@2.17.0",
+    "@walletconnect/utils": "https://esm.sh/@walletconnect/utils@2.17.0",
     "buffer": "https://esm.sh/buffer@6.0.3"
   }
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <style>
 :root{--bg-root:#0A0D12;--bg-base:#12161D;--bg-card:#1A2029;--bg-input:#232A35;--bg-hover:#2A3241;--border-subtle:#232A35;--border:#2A3241;--border-strong:#3A4353;--accent:#FCD535;--accent-hover:#FFE251;--accent-press:#F0B90B;--accent-glow:rgba(252,213,53,.18);--txt:#F0F2F5;--txt-2:#B8C0CE;--txt-3:#7A8494;--txt-4:#545D6D;--txt-inv:#0A0D12;--success:#0ECB81;--success-bg:rgba(14,203,129,.1);--success-bd:rgba(14,203,129,.35);--danger:#F6465D;--danger-bg:rgba(246,70,93,.1);--danger-bd:rgba(246,70,93,.35);--warning:#F0B90B;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--r-pill:999px;--sh-accent:0 4px 20px rgba(252,213,53,.28);--sh-card:0 8px 32px rgba(0,0,0,.4);--ease:cubic-bezier(.4,0,.2,1);--ease-out:cubic-bezier(.16,1,.3,1);--f-ar:'Cairo',system-ui,sans-serif;--f-en:'Inter',system-ui,sans-serif;--f-mono:'JetBrains Mono',monospace}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -363,7 +366,6 @@ ul,ol{list-style:none}
         <div class="hero__stat"><div class="hero__stat-val">∞</div><div class="hero__stat-lbl">بدون حدود</div></div>
       </div>
     </section>
-
     <section class="info-section">
       <div class="sec__head" style="margin-bottom:0">
         <span class="sec__badge">WHAT IS MEMECOIN</span>
@@ -389,7 +391,6 @@ ul,ol{list-style:none}
         </div>
       </div>
     </section>
-
     <section class="sec" id="how">
       <div class="sec__head"><span class="sec__badge">HOW IT WORKS</span><h2 class="sec__title">3 خطوات فقط</h2></div>
       <div class="how">
@@ -398,7 +399,6 @@ ul,ol{list-style:none}
         <div class="step-card"><div class="step-card__num">3</div><h3>أدر السيولة</h3><p>أنشئ مجمع Raydium، وتابع السعر والأداء من لوحة السيولة المباشرة</p></div>
       </div>
     </section>
-
     <section class="sec" id="features">
       <div class="sec__head"><span class="sec__badge">FEATURES</span><h2 class="sec__title">كل ما تحتاجه لإطلاق عملتك</h2></div>
       <div class="feats">
@@ -410,7 +410,6 @@ ul,ol{list-style:none}
         <div class="feat"><div class="feat__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div><h3>دفع آمن على السلسلة</h3><p>تحقق on-chain مباشر مع منع استخدام نفس التوقيع مرتين — أمان كامل بدون مخاطر</p></div>
       </div>
     </section>
-
     <div class="cta-box">
       <h2>جاهز لإطلاق عملتك؟</h2>
       <p>ابدأ الآن وامتلك توكنك الخاص على Solana</p>
@@ -724,7 +723,7 @@ ul,ol{list-style:none}
 
 <script type="module">
 /* ============================================================
-   MEMECOIN FACTORY v31 — Order Persistence + Mobile Deep Link Fixed
+   MEMECOIN FACTORY v32 — WalletConnect Integration
    ============================================================ */
 
 import { Buffer as BufferPolyfill } from 'buffer';
@@ -754,10 +753,11 @@ const DEFAULT_CONFIG = {
 };
 const ADMIN_PASSWORD = 'walidWALID';
 const RPC_DEFAULTS = {'devnet':'https://api.devnet.solana.com','mainnet-beta':'https://api.mainnet-beta.solana.com'};
-const K = { 
-  cfg:'mcf_cfg_v31', wallet:'mcf_wallet_v31', orders:'mcf_orders_v31', tokens:'mcf_tokens_v31', adminSess:'mcf_admin_sess_v31', pendingOrder:'mcf_pending_order_v31'
-};
+const K = { cfg:'mcf_cfg_v32', wallet:'mcf_wallet_v32', orders:'mcf_orders_v32', tokens:'mcf_tokens_v32', adminSess:'mcf_admin_sess_v32', pendingOrder:'mcf_pending_order_v32' };
 const SUPABASE = { url:'https://tbrllmgoqswelhnusimh.supabase.co', key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRicmxsbWdvcXN3ZWxobnVzaW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzY4NTQsImV4cCI6MjEwNjM1Mjg1NH0.JEQ-qckxmnaJZnMSdf-xc1-xYqFqFpu0307Cguut4cU', bucket:'token-images' };
+
+// WalletConnect Project ID (يمكنك استبداله بمعرفك الخاص من cloud.walletconnect.com)
+const WC_PROJECT_ID = '2c7a33a29c94d9e933812d50ef729b9e';
 
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
@@ -773,25 +773,132 @@ const isValidSolanaAddress = addr=>{if(!addr||typeof addr!=='string')return fals
 
 const isMobileDevice = () => /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent);
 
-function getMobileDeepLink(walletKey, siteUrl){
-  const encoded = encodeURIComponent(siteUrl);
+// ============ WalletConnect Integration ============
+let wcClient = null;
+let wcSession = null;
+
+async function initWC(){
+  if(wcClient) return wcClient;
+  try{
+    const { SignClient } = await import('@walletconnect/sign-client');
+    wcClient = await SignClient.init({
+      projectId: WC_PROJECT_ID,
+      metadata: {
+        name: 'Memecoin Factory',
+        description: 'Create Solana tokens',
+        url: window.location.origin,
+        icons: [window.location.origin + '/icon.png']
+      }
+    });
+    return wcClient;
+  }catch(e){ console.error('[WC init]', e); return null; }
+}
+
+async function connectViaWC(walletKey){
+  const client = await initWC();
+  if(!client){ toast('⚠️ فشل تهيئة WalletConnect','error'); return false; }
+  try{
+    const requiredNamespaces = {
+      solana: {
+        methods: ['solana_signTransaction','solana_signMessage'],
+        chains: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+        events: ['accountsChanged','chainChanged']
+      }
+    };
+    const { uri, approval } = await client.connect({ requiredNamespaces });
+    if(uri){
+      const deepLink = getWCDeeplink(walletKey, uri);
+      if(deepLink){
+        sessionStorage.setItem('mcf_wc_uri', uri);
+        sessionStorage.setItem('mcf_wc_wallet', walletKey);
+        if(state.currentOrder) persistPendingOrder(state.currentOrder);
+        window.location.href = deepLink;
+        // انتظر الموافقة في الخلفية (قد لا تعمل بعد إعادة التوجيه)
+        approval().then(session => {
+          handleWCSession(session, walletKey);
+        }).catch(e => console.warn('[WC approval]', e));
+        return new Promise(() => {}); // علّق التنفيذ
+      } else {
+        showQRCode(uri, walletKey);
+        const session = await approval();
+        return await handleWCSession(session, walletKey);
+      }
+    }
+  }catch(e){
+    console.error('[WC connect]', e);
+    toast(e.message || 'فشل الاتصال','error');
+    return false;
+  }
+}
+
+async function handleWCSession(session, walletKey){
+  wcSession = session;
+  const accounts = session.namespaces.solana.accounts;
+  const publicKey = accounts[0].split(':')[2];
+  const adapter = buildWCAdapter(session);
+  state.wallet = { publicKey, name: Wallets[walletKey].name, key: walletKey, adapter };
+  writeLS(K.wallet, { publicKey, name: Wallets[walletKey].name, key: walletKey });
+  toast(`✅ تم الاتصال بـ ${Wallets[walletKey].name}`, 'success');
+  return true;
+}
+
+function buildWCAdapter(session){
+  return {
+    signTransaction: async (tx) => {
+      const { signature } = await wcClient.request({
+        topic: session.topic,
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        request: {
+          method: 'solana_signTransaction',
+          params: {
+            transaction: tx.serialize({ requireAllSignatures: false }).toString('base64')
+          }
+        }
+      });
+      tx.addSignature(new PublicKey(session.namespaces.solana.accounts[0].split(':')[2]), Buffer.from(signature, 'base64'));
+      return tx;
+    },
+    signAllTransactions: async (txs) => Promise.all(txs.map(tx => buildWCAdapter(session).signTransaction(tx))),
+    disconnect: async () => {
+      try { await wcClient.disconnect({ topic: session.topic, reason: { code: 6000, message: 'User disconnected' } }); } catch(e){}
+    }
+  };
+}
+
+function getWCDeeplink(walletKey, uri){
+  const encoded = encodeURIComponent(uri);
   switch(walletKey){
-    case 'phantom': return `https://phantom.app/ul/browse/${encoded}?ref=${encoded}`;
-    case 'solflare': return `https://solflare.com/ul/v1/browse/${encoded}?ref=${encoded}`;
-    case 'backpack': return `https://backpack.app/ul/v1/browse/${encoded}?ref=${encoded}`;
-    case 'binance': return `https://app.binance.com/cedefi/`;
+    case 'phantom': return `https://phantom.app/ul/v1/connect?uri=${encoded}&redirect_link=${encodeURIComponent(window.location.href)}`;
+    case 'solflare': return `https://solflare.com/ul/v1/connect?uri=${encoded}&redirect_link=${encodeURIComponent(window.location.href)}`;
+    case 'backpack': return `https://backpack.app/ul/v1/connect?uri=${encoded}&redirect_link=${encodeURIComponent(window.location.href)}`;
+    case 'binance': return `bnc://app.binance.com/cedefi/wc?uri=${encoded}`;
     default: return null;
   }
 }
 
+function showQRCode(uri, walletKey){
+  const modal = document.createElement('div');
+  modal.id = 'wcQrModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:5000;display:grid;place-items:center;background:rgba(0,0,0,.9);padding:20px';
+  modal.innerHTML = `
+    <div style="background:var(--bg-card);border:1px solid var(--accent);border-radius:20px;padding:28px;text-align:center;max-width:420px;width:100%">
+      <h3 style="font-size:18px;font-weight:900;margin-bottom:12px">امسح رمز QR بالمحفظة</h3>
+      <p style="font-size:13px;color:var(--txt-3);margin-bottom:16px">افتح ${Wallets[walletKey].name} وامسح الرمز للاتصال</p>
+      <div id="qrCodeContainer" style="background:#fff;padding:20px;border-radius:12px;margin-bottom:16px;display:inline-block"></div>
+      <button class="btn btn--ghost btn--blk" id="wcCancelBtn">إلغاء</button>
+    </div>`;
+  document.body.appendChild(modal);
+  new QRCode(document.getElementById('qrCodeContainer'), { text: uri, width: 200, height: 200 });
+  document.getElementById('wcCancelBtn').onclick = () => modal.remove();
+}
+
+// ============ Order Persistence ============
 function persistPendingOrder(order){
   if(!order) return;
   writeLS(K.pendingOrder, order);
   try{ sessionStorage.setItem('mcf_current_order', JSON.stringify(order)); }catch(e){}
   state.currentOrder = order;
-  console.log('[Persistence] Order saved:', order.id);
 }
-
 function restorePendingOrder(){
   try{
     const sess = sessionStorage.getItem('mcf_current_order');
@@ -802,12 +909,12 @@ function restorePendingOrder(){
   const orders = Store.orders();
   return orders.find(o => ['awaiting_payment','payment_confirmed','processing'].includes(o.status)) || null;
 }
-
 function clearPendingOrder(){
   try{ sessionStorage.removeItem('mcf_current_order'); }catch(e){}
   localStorage.removeItem(K.pendingOrder);
 }
 
+// ============ Config Store ============
 const Cfg = {
   get(){return {...DEFAULT_CONFIG,...readLS(K.cfg,{})};},
   set(p){const n={...this.get(),...p};writeLS(K.cfg,n);applyBranding();return n;},
@@ -866,82 +973,33 @@ const Wallets = {
   binance:{name:'Binance Web3',detect(){return !!(window.binancew3w?.solana||window.BinanceChain?.solana);},get p(){return window.binancew3w?.solana||window.BinanceChain?.solana;}},
 };
 
-function buildAdapter(p){return {signTransaction:tx=>p.signTransaction(tx),disconnect:()=>p.disconnect?.(),p};}
+function buildAdapter(p){return {signTransaction:tx=>p.signTransaction(tx),signAllTransactions:txs=>p.signAllTransactions(txs),disconnect:()=>p.disconnect?.(),p};}
 
 async function connectWallet(key){
   const w=Wallets[key];if(!w){toast('محفظة غير مدعومة','error');return false;}
-
-  if(!w.detect() && isMobileDevice()){
-    const deepLink = getMobileDeepLink(key, window.location.href);
-    if(deepLink){
-      if(state.currentOrder) persistPendingOrder(state.currentOrder);
-      try{
-        sessionStorage.setItem('mcf_pending_wallet', key);
-        localStorage.setItem('mcf_pending_wallet', key);
-      }catch(e){}
-      if(key === 'binance'){
-        toast('📱 فتح تعليمات Binance Web3...','info',2500);
-        setTimeout(()=>{ showBinanceInstructions(); }, 300);
-        return false;
-      }
-      toast('📱 جارٍ فتح تطبيق المحفظة...','info',3000);
-      setTimeout(()=>{ window.location.href = deepLink; }, 400);
+  // إذا كانت المحفظة متاحة (Extension أو داخل متصفح التطبيق) → اتصال مباشر
+  if(w.detect()){
+    try{
+      const p=w.p;
+      const res=await p.connect();
+      const pk=(res?.publicKey||p.publicKey)?.toString();
+      if(!pk)throw new Error('لم يتم استلام العنوان');
+      state.wallet={publicKey:pk,name:w.name,key,adapter:buildAdapter(p)};
+      writeLS(K.wallet,{publicKey:pk,name:w.name,key});
+      toast(`✅ تم الاتصال بـ ${w.name}`,'success');
+      return true;
+    }catch(e){
+      if(/user rejected/i.test(e?.message||''))toast('تم رفض الاتصال','error');
+      else toast(e?.message||'فشل الاتصال','error');
       return false;
     }
   }
-
-  if(!w.detect()){
-    const msg = isMobileDevice() ? `❌ ${w.name} غير مثبتة على الموبايل — حمّل التطبيق` : `❌ ${w.name} غير مثبتة — ثبّت الامتداد`;
-    toast(msg,'error',7000);
-    return false;
-  }
-  try{
-    const p=w.p;
-    const res=await p.connect();
-    const pk=(res?.publicKey||p.publicKey)?.toString();
-    if(!pk)throw new Error('لم يتم استلام العنوان');
-    state.wallet={publicKey:pk,name:w.name,key,adapter:buildAdapter(p)};
-    writeLS(K.wallet,{publicKey:pk,name:w.name,key});
-    toast(`✅ تم الاتصال بـ ${w.name}`,'success');
-    return true;
-  }catch(e){
-    if(/user rejected/i.test(e?.message||''))toast('تم رفض الاتصال','error');
-    else toast(e?.message||'فشل الاتصال','error');
-    return false;
-  }
+  // إذا لم تكن متاحة → استخدم WalletConnect
+  toast('📱 جارٍ الاتصال عبر WalletConnect...','info',2000);
+  return await connectViaWC(key);
 }
 
-function showBinanceInstructions(){
-  const existing = document.getElementById('binanceHelpModal');
-  if(existing) existing.remove();
-  const modal = document.createElement('div');
-  modal.id = 'binanceHelpModal';
-  modal.className = 'modal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:3000;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.85)';
-  modal.innerHTML = `
-    <div style="background:var(--bg-card);border:1px solid var(--accent);border-radius:20px;padding:28px;max-width:440px;width:100%;text-align:center">
-      <div style="width:64px;height:64px;margin:0 auto 16px;display:grid;place-items:center;background:rgba(240,185,11,.15);border:1px solid rgba(240,185,11,.4);border-radius:18px">
-        <svg width="32" height="32" viewBox="0 0 128 128" fill="none"><rect width="128" height="128" rx="28" fill="#F0B90B"/><path d="M64 30l10 10-10 10-10-10z" fill="#fff"/><path d="M44 50l10 10-10 10-10-10z" fill="#fff"/><path d="M84 50l10 10-10 10-10-10z" fill="#fff"/><path d="M64 58l10 10-10 10-10-10z" fill="#fff"/><path d="M64 78l10 10-10 10-10-10z" fill="#fff"/></svg>
-      </div>
-      <h3 style="font-size:20px;font-weight:900;margin-bottom:10px;color:var(--txt)">افتح متصفح DApp في Binance</h3>
-      <p style="font-size:14px;color:var(--txt-2);line-height:1.7;margin-bottom:20px">هيفتح تطبيق Binance دلوقتي. عشان تربط محفظتك:</p>
-      <div style="text-align:start;background:var(--bg-input);padding:16px;border-radius:12px;font-size:13px;line-height:2.2;margin-bottom:20px;color:var(--txt-2)">
-        <div>1️⃣ اضغط على تبويب <b style="color:var(--accent)">Web3</b> في الأسفل</div>
-        <div>2️⃣ اضغط على أيقونة <b style="color:var(--accent)">المتصفح (Browser)</b></div>
-        <div>3️⃣ الصق رابط الموقع في شريط العنوان</div>
-        <div>4️⃣ ارجع لموقعنا واضغط <b style="color:var(--accent)">"ربط المحفظة"</b> تاني</div>
-      </div>
-      <button class="btn btn--pri btn--blk" id="binanceOkBtn">فهمت، افتح التطبيق</button>
-    </div>`;
-  document.body.appendChild(modal);
-  document.getElementById('binanceOkBtn').addEventListener('click', () => {
-    modal.remove();
-    if(state.currentOrder) persistPendingOrder(state.currentOrder);
-    try{ localStorage.setItem('mcf_pending_wallet','binance'); }catch(e){}
-    window.location.href = 'https://app.binance.com/cedefi/';
-  });
-}
-
+// ============ Navigation ============
 const VIEWS = ['home','create-1','create-2','create-3','funding','connect-wallet','launching','success','liquidity','admin'];
 function navigate(v){
   if(!VIEWS.includes(v))v='home';
@@ -1004,6 +1062,7 @@ document.addEventListener('click',e=>{
   document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='a'){e.preventDefault();navigate('admin');}});
 })();
 
+// ============ Initialization ============
 window.addEventListener('load', async ()=>{
   const remote = await pullConfigFromSupabase();
   if(remote){ writeLS(K.cfg, {...DEFAULT_CONFIG, ...remote}); }
@@ -1015,6 +1074,7 @@ window.addEventListener('load', async ()=>{
   let targetView = VIEWS.includes(h) ? h : 'home';
 
   const pendingWallet = sessionStorage.getItem('mcf_pending_wallet') || localStorage.getItem('mcf_pending_wallet');
+
   if(pendingOrder && pendingWallet){
     targetView = 'connect-wallet';
   }
@@ -1023,14 +1083,34 @@ window.addEventListener('load', async ()=>{
   applyBranding();
   updateTokensBadge();
 
-  if(pendingWallet){
+  // محاولة استعادة جلسة WalletConnect السابقة
+  const savedWC = sessionStorage.getItem('mcf_wc_uri');
+  if(savedWC){
+    sessionStorage.removeItem('mcf_wc_uri');
+    const client = await initWC();
+    if(client){
+      // البحث عن جلسة نشطة
+      const sessions = client.session.getAll();
+      if(sessions.length > 0){
+        const s = sessions[0];
+        const walletKey = sessionStorage.getItem('mcf_wc_wallet') || 'phantom';
+        sessionStorage.removeItem('mcf_wc_wallet');
+        await handleWCSession(s, walletKey);
+        if(state.currentOrder && state.currentOrder.creatorWallet){
+          setTimeout(()=>runPipeline(state.currentOrder), 500);
+        }
+      }
+    }
+  }
+
+  // محاولة ربط تلقائي إذا كانت المحفظة متاحة (Extension)
+  if(pendingWallet && !state.wallet){
     const w = Wallets[pendingWallet];
     if(w){
-      try{ sessionStorage.removeItem('mcf_pending_wallet'); localStorage.removeItem('mcf_pending_wallet'); }catch(e){}
       let attempts = 0;
       const tryConnect = () => {
         if(w.detect()){
-          toast('📱 تم فتح التطبيق — جارٍ الربط...','info',3000);
+          toast('📱 جارٍ الربط...','info',2000);
           setTimeout(async ()=>{
             const ok = await connectWallet(pendingWallet);
             if(ok && state.currentOrder){
@@ -1040,19 +1120,19 @@ window.addEventListener('load', async ()=>{
                 setTimeout(()=>runPipeline(state.currentOrder), 500);
               }
             }
-          }, 900);
+          }, 500);
           return;
         }
         attempts++;
         if(attempts < 12) setTimeout(tryConnect, 350);
       };
       setTimeout(tryConnect, 500);
-    } else {
-      try{ sessionStorage.removeItem('mcf_pending_wallet'); localStorage.removeItem('mcf_pending_wallet'); }catch(e){}
     }
   }
+  try{ sessionStorage.removeItem('mcf_pending_wallet'); localStorage.removeItem('mcf_pending_wallet'); }catch(e){}
 });
 
+// ============ Branding ============
 function applyBranding(){
   const c=Cfg.get();document.title=c.siteName+' — Solana Token Factory';
   const isMain=c.network==='mainnet-beta';const badge=$('#networkBadge');
@@ -1062,6 +1142,7 @@ function applyBranding(){
 }
 function updateTokensBadge(){const n=Store.tokens().length;const b=$('#myTokensCount');if(n>0){b.hidden=false;b.textContent=n;}else b.hidden=true;}
 
+// ============ Step 1 ============
 $('#tName')?.addEventListener('input',e=>{$('#tNameCount').textContent=e.target.value.length;});
 $('#tDesc')?.addEventListener('input',e=>{$('#tDescCount').textContent=e.target.value.length;});
 $('#tLogo')?.addEventListener('change',e=>{
@@ -1097,12 +1178,14 @@ $('#next1')?.addEventListener('click',async()=>{
   try{await saveLogoToIDB(logo);navigate('create-2');}catch(e){err.textContent='فشل حفظ الشعار: '+e.message;err.hidden=false;}
 });
 
+// ============ Step 2 ============
 $('#burnToggle')?.addEventListener('change',e=>{$('#burnPctField').hidden=!e.target.checked;});
 $('#next2')?.addEventListener('click',()=>{
   const step2={liquiditySol:Number($('#liq').value)||0,burnPct:$('#burnToggle').checked?(Number($('#burnP').value)||0):0};
   sessionStorage.setItem('mcf_step2',JSON.stringify(step2));navigate('create-3');
 });
 
+// ============ Step 3 ============
 function renderReview(){
   const s1=JSON.parse(sessionStorage.getItem('mcf_step1')||'{}');
   const s2=JSON.parse(sessionStorage.getItem('mcf_step2')||'{}');
@@ -1148,6 +1231,7 @@ $('#createOrderBtn')?.addEventListener('click',()=>{
   updateCountdown(order.expiresAt);navigate('funding');toast('✅ تم إنشاء الطلب','success');
 });
 
+// ============ Countdown ============
 let countdownT=null;
 function updateCountdown(expiresAt){
   clearInterval(countdownT);const el=$('#fundingExpiry');
@@ -1165,6 +1249,7 @@ $('#cancelOrderBtn')?.addEventListener('click',()=>{
   navigate('home');
 });
 
+// ============ Verify Payment ============
 $('#verifyBtn')?.addEventListener('click',async()=>{
   const err=$('#errFunding');err.hidden=true;
   const sig=$('#txSig').value.trim();
@@ -1195,6 +1280,7 @@ $('#verifyBtn')?.addEventListener('click',async()=>{
   finally{btn.disabled=false;btn.textContent='🔍 التحقق من الدفع';}
 });
 
+// ============ Connect Wallet Modal ============
 $('#openWalletModalBtn')?.addEventListener('click',()=>{
   if(!state.currentOrder){toast('لا يوجد طلب','error');return;}
   refreshWalletModal();
@@ -1206,10 +1292,8 @@ function refreshWalletModal(){
     const k=btn.dataset.wallet;const w=Wallets[k];const st=btn.querySelector('.wallet-item__status');
     if(!w)return;
     if(w.detect()){st.textContent='متاح';st.className='wallet-item__status ready';}
-    else{
-      st.textContent = isMobileDevice() ? 'افتح التطبيق' : 'غير مثبت';
-      st.className='wallet-item__status missing';
-    }
+    else if(isMobileDevice()){st.textContent='افتح التطبيق';st.className='wallet-item__status ready';}
+    else{st.textContent='غير مثبت';st.className='wallet-item__status missing';}
   });
 }
 
@@ -1218,6 +1302,7 @@ $('#walletList')?.addEventListener('click',async e=>{
   const k=btn.dataset.wallet;const st=btn.querySelector('.wallet-item__status');
   st.textContent='جارٍ...';st.className='wallet-item__status';
   if(state.currentOrder) persistPendingOrder(state.currentOrder);
+  try{ sessionStorage.setItem('mcf_pending_wallet', k); }catch(e){}
   const ok=await connectWallet(k);
   if(ok){
     $('#walletModal').hidden=true;
@@ -1229,6 +1314,7 @@ $('#walletList')?.addEventListener('click',async e=>{
   }
 });
 
+// ============ Pipeline ============
 async function runPipeline(order){
   navigate('launching');
   $('#progressLog').innerHTML = '';
@@ -1249,27 +1335,21 @@ async function runPipeline(order){
     if(status) el.classList.add(status);
     if(sig) el.querySelector('.pipeline__sig').textContent = sig.slice(0,8)+'…';
   };
-
   let conn, w, payer, mintKp, mintAddr, metaURL, logoURL, supplyRaw, decimals;
-
   try {
     const cfg = Cfg.get();
     if(!state.wallet) throw new Error('المحفظة غير مربوطة');
     if(!isValidSolanaAddress(cfg.treasury)) throw new Error('عنوان الخزينة غير صالح');
-
     conn = new Connection(RPC_DEFAULTS[cfg.network], 'confirmed');
     w = state.wallet;
     payer = new PublicKey(w.publicKey);
-
     order.status = 'processing';
     Store.saveOrder(order);
 
     setStep('upload','active');
     log('رفع الشعار والميتاداتا...');
-
     const logoFile = await getLogoFromIDB();
     if(!logoFile) throw new Error('الشعار مفقود — أعد الخطوات');
-
     const sb = createClient(SUPABASE.url, SUPABASE.key);
     const logoPath = `logos/${Date.now()}_${logoFile.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
     const { error: lErr } = await sb.storage.from(SUPABASE.bucket).upload(logoPath, logoFile, { cacheControl:'3600', upsert:false });
@@ -1277,7 +1357,6 @@ async function runPipeline(order){
     const { data: lUrl } = sb.storage.from(SUPABASE.bucket).getPublicUrl(logoPath);
     logoURL = lUrl.publicUrl;
     log(`✅ الشعار مرفوع`, 'ok');
-
     const meta = {
       name: order.token.name, symbol: order.token.symbol.toUpperCase(),
       description: order.token.description || `${order.token.name} — Meme Coin on Solana`,
@@ -1297,12 +1376,10 @@ async function runPipeline(order){
 
     setStep('mint','active');
     log('إنشاء حساب Mint...');
-
     decimals = Number(order.token.decimals) || 9;
     supplyRaw = BigInt(order.token.supply) * (10n ** BigInt(decimals));
     mintKp = Keypair.generate();
     const rentLam = await conn.getMinimumBalanceForRentExemption(82);
-
     const tx1 = new Transaction().add(
       ComputeBudgetProgram.setComputeUnitLimit({ units: 200000 }),
       SystemProgram.createAccount({ fromPubkey:payer, newAccountPubkey:mintKp.publicKey, lamports:rentLam, space:82, programId:TOKEN_PROGRAM_ID }),
@@ -1312,7 +1389,6 @@ async function runPipeline(order){
     const bh1 = await conn.getLatestBlockhash('confirmed');
     tx1.recentBlockhash = bh1.blockhash;
     tx1.partialSign(mintKp);
-
     log('⏳ وافق في المحفظة...','wrn');
     const signed1 = await w.adapter.signTransaction(tx1);
     const sig1 = await conn.sendRawTransaction(signed1.serialize(), { skipPreflight:false, maxRetries:3 });
@@ -1323,7 +1399,6 @@ async function runPipeline(order){
 
     setStep('mintTo','active');
     log('سك العرض...');
-
     const ata = getAssociatedTokenAddressSync(mintKp.publicKey, payer);
     const tx2 = new Transaction().add(
       ComputeBudgetProgram.setComputeUnitLimit({ units: 200000 }),
@@ -1341,13 +1416,11 @@ async function runPipeline(order){
 
     setStep('metadata','active');
     log('إرفاق Metaplex Metadata...');
-
     const TOKEN_META_PROGRAM = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
     const [metaPda] = PublicKey.findProgramAddressSync(
       [Buffer.from('metadata'), TOKEN_META_PROGRAM.toBuffer(), mintKp.publicKey.toBuffer()],
       TOKEN_META_PROGRAM
     );
-
     const metaIx = createCreateMetadataAccountV3Instruction(
       { metadata:metaPda, mint:mintKp.publicKey, mintAuthority:payer, payer, updateAuthority:payer, systemProgram:SystemProgram.programId },
       { createMetadataAccountArgsV3: { data: {
@@ -1437,6 +1510,7 @@ async function runPipeline(order){
   }
 }
 
+// ============ Success ============
 function showSuccess(order, mintAddr){
   $('#successMint').textContent = mintAddr;
   const cluster = order.network === 'devnet' ? '?cluster=devnet' : '';
@@ -1454,6 +1528,7 @@ function showSuccess(order, mintAddr){
   toast('🎉 تم الإطلاق!','success',6000);
 }
 
+// ============ Liquidity Dashboard ============
 async function fetchDexData(mint){
   try{
     const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`, { cache:'no-store' });
@@ -1577,6 +1652,7 @@ function openTokenDetail(token){
 
 $('#refreshLiqBtn')?.addEventListener('click', ()=>{ renderLiquidity(); toast('🔄 تحديث...','info'); });
 
+// ============ Admin ============
 async function checkAdmin(){
   const sess = readLS(K.adminSess, null);
   if(sess?.ts && Date.now()-sess.ts < 4*60*60*1000){
@@ -1711,6 +1787,7 @@ $('#clearAllData')?.addEventListener('click', ()=>{
   Store.clearAll(); toast('تم المسح','info');
 });
 
+// ============ Restore Wallet ============
 (function restore(){
   const s = readLS(K.wallet, null);
   if(!s?.publicKey) return;
