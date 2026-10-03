@@ -43,7 +43,7 @@ ul,ol{list-style:none}
 .brand:hover .brand__logo{transform:scale(1.05)}
 .brand__logo svg{width:22px;height:22px}
 .brand__title{font-size:17px;font-weight:900;letter-spacing:-.02em;font-family:var(--f-en)}
-.brand__sub{font-size:9.5px;font-weight:700;color:var(--txt-4);letter-spacing:.18em;text-transform:uppercase;font-family:var(--f-en)}
+.brand__sub{font-size:9.5px;font-weight:700;color:var(--txt-4);letter-spacing:.18em;text-transform:uppercase;font-family:var(--f-ar)}
 .nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;font-size:13.5px;font-weight:700;border-radius:var(--r-md);border:1px solid transparent;transition:all .2s var(--ease);white-space:nowrap;user-select:none}
 .btn:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
@@ -83,7 +83,7 @@ ul,ol{list-style:none}
 .hero__stat-lbl{font-size:10.5px;font-weight:700;color:var(--txt-4);letter-spacing:.1em;text-transform:uppercase;margin-top:8px;text-align:center}
 .sec{padding:72px 0}
 .sec__head{text-align:center;margin-bottom:48px}
-.sec__badge{display:inline-block;padding:6px 16px;background:var(--accent-glow);border:1px solid rgba(252,213,53,.35);color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;border-radius:var(--r-pill);margin-bottom:14px;font-family:var(--f-en)}
+.sec__badge{display:inline-block;padding:6px 16px;background:var(--accent-glow);border:1px solid rgba(252,213,53,.35);color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;border-radius:var(--r-pill);margin-bottom:14px;font-family:var(--f-ar)}
 .sec__title{font-size:clamp(26px,4vw,42px);font-weight:900;letter-spacing:-.03em;margin-bottom:12px;line-height:1.15}
 .sec__sub{font-size:15px;color:var(--txt-3);max-width:600px;margin-inline:auto}
 .how{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;position:relative}
@@ -727,7 +727,8 @@ ul,ol{list-style:none}
 
 <script type="module">
 /* ============================================================
-   MEMECOIN FACTORY v33 — WalletConnect + Auto-Redirect Fix
+   MEMECOIN FACTORY v34 — FIXED PIPELINE ORDER
+   سك العرض أولاً، ثم إلغاء الصلاحيات
    ============================================================ */
 
 import { Buffer as BufferPolyfill } from 'buffer';
@@ -757,10 +758,9 @@ const DEFAULT_CONFIG = {
 };
 const ADMIN_PASSWORD = 'walidWALID';
 const RPC_DEFAULTS = {'devnet':'https://api.devnet.solana.com','mainnet-beta':'https://api.mainnet-beta.solana.com'};
-const K = { cfg:'mcf_cfg_v33', wallet:'mcf_wallet_v33', orders:'mcf_orders_v33', tokens:'mcf_tokens_v33', adminSess:'mcf_admin_sess_v33', pendingOrder:'mcf_pending_order_v33', pendingWallet:'mcf_pending_wallet_v33', wcUri:'mcf_wc_uri_v33', wcWallet:'mcf_wc_wallet_v33' };
+const K = { cfg:'mcf_cfg_v34', wallet:'mcf_wallet_v34', orders:'mcf_orders_v34', tokens:'mcf_tokens_v34', adminSess:'mcf_admin_sess_v34', pendingOrder:'mcf_pending_order_v34' };
 const SUPABASE = { url:'https://tbrllmgoqswelhnusimh.supabase.co', key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRicmxsbWdvcXN3ZWxobnVzaW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzY4NTQsImV4cCI6MjEwNjM1Mjg1NH0.JEQ-qckxmnaJZnMSdf-xc1-xYqFqFpu0307Cguut4cU', bucket:'token-images' };
 
-// WalletConnect Project ID - يجب استبداله بمعرفك الخاص من cloud.walletconnect.com
 const WC_PROJECT_ID = '2c7a33a29c94d9e933812d50ef729b9e';
 
 const $ = (s,r=document)=>r.querySelector(s);
@@ -777,7 +777,6 @@ const isValidSolanaAddress = addr=>{if(!addr||typeof addr!=='string')return fals
 
 const isMobileDevice = () => /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent);
 
-// ============ WalletConnect Integration ============
 let wcClient = null;
 let wcSession = null;
 
@@ -787,13 +786,7 @@ async function initWC(){
     const { SignClient } = await import('@walletconnect/sign-client');
     wcClient = await SignClient.init({
       projectId: WC_PROJECT_ID,
-      relayUrl: 'wss://relay.walletconnect.org',
-      metadata: {
-        name: 'Memecoin Factory',
-        description: 'Create Solana tokens',
-        url: window.location.origin,
-        icons: [window.location.origin + '/icon.png']
-      }
+      metadata: { name:'Memecoin Factory', description:'Create Solana tokens', url:window.location.origin, icons:[window.location.origin+'/icon.png'] }
     });
     return wcClient;
   }catch(e){ console.error('[WC init]', e); return null; }
@@ -803,38 +796,16 @@ async function connectViaWC(walletKey){
   const client = await initWC();
   if(!client){ toast('⚠️ فشل تهيئة WalletConnect','error'); return false; }
   try{
-    const requiredNamespaces = {
-      solana: {
-        methods: ['solana_signTransaction','solana_signMessage'],
-        chains: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
-        events: ['accountsChanged','chainChanged']
-      }
-    };
+    const requiredNamespaces = { solana: { methods:['solana_signTransaction','solana_signMessage'], chains:['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'], events:['accountsChanged','chainChanged'] } };
     const { uri, approval } = await client.connect({ requiredNamespaces });
     if(uri){
-      // حفظ بيانات الجلسة قبل فتح التطبيق
-      try{ 
-        sessionStorage.setItem('mcf_wc_uri', uri); 
-        sessionStorage.setItem('mcf_wc_wallet', walletKey);
-        localStorage.setItem('mcf_wc_wallet', walletKey);
-      }catch(e){}
+      try{ sessionStorage.setItem('mcf_wc_uri', uri); sessionStorage.setItem('mcf_wc_wallet', walletKey); }catch(e){}
       if(state.currentOrder) persistPendingOrder(state.currentOrder);
-
       const deepLink = getWCDeeplink(walletKey, uri);
-      if(deepLink){
-        window.location.href = deepLink;
-        return new Promise(() => {});
-      } else {
-        showQRCode(uri, walletKey);
-        const session = await approval();
-        return await handleWCSession(session, walletKey);
-      }
+      if(deepLink){ window.location.href = deepLink; return new Promise(()=>{}); }
+      else { showQRCode(uri, walletKey); const session = await approval(); return await handleWCSession(session, walletKey); }
     }
-  }catch(e){
-    console.error('[WC connect]', e);
-    toast(e.message || 'فشل الاتصال','error');
-    return false;
-  }
+  }catch(e){ console.error('[WC connect]', e); toast(e.message||'فشل الاتصال','error'); return false; }
 }
 
 async function handleWCSession(session, walletKey){
@@ -854,18 +825,13 @@ function buildWCAdapter(session){
       const { signature } = await wcClient.request({
         topic: session.topic,
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        request: {
-          method: 'solana_signTransaction',
-          params: { transaction: tx.serialize({ requireAllSignatures: false }).toString('base64') }
-        }
+        request: { method:'solana_signTransaction', params:{ transaction: tx.serialize({ requireAllSignatures:false }).toString('base64') } }
       });
       tx.addSignature(new PublicKey(session.namespaces.solana.accounts[0].split(':')[2]), Buffer.from(signature, 'base64'));
       return tx;
     },
     signAllTransactions: async (txs) => Promise.all(txs.map(tx => buildWCAdapter(session).signTransaction(tx))),
-    disconnect: async () => {
-      try { await wcClient.disconnect({ topic: session.topic, reason: { code: 6000, message: 'User disconnected' } }); } catch(e){}
-    }
+    disconnect: async () => { try { await wcClient.disconnect({ topic: session.topic, reason: { code:6000, message:'User disconnected' } }); } catch(e){} }
   };
 }
 
@@ -885,19 +851,16 @@ function showQRCode(uri, walletKey){
   const modal = document.createElement('div');
   modal.id = 'wcQrModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:5000;display:grid;place-items:center;background:rgba(0,0,0,.9);padding:20px';
-  modal.innerHTML = `
-    <div style="background:var(--bg-card);border:1px solid var(--accent);border-radius:20px;padding:28px;text-align:center;max-width:420px;width:100%">
-      <h3 style="font-size:18px;font-weight:900;margin-bottom:12px">امسح رمز QR بالمحفظة</h3>
-      <p style="font-size:13px;color:var(--txt-3);margin-bottom:16px">افتح ${Wallets[walletKey].name} وامسح الرمز للاتصال</p>
-      <div id="qrCodeContainer" style="background:#fff;padding:20px;border-radius:12px;margin-bottom:16px;display:inline-block"></div>
-      <button class="btn btn--ghost btn--blk" id="wcCancelBtn">إلغاء</button>
-    </div>`;
+  modal.innerHTML = `<div style="background:var(--bg-card);border:1px solid var(--accent);border-radius:20px;padding:28px;text-align:center;max-width:420px;width:100%">
+    <h3 style="font-size:18px;font-weight:900;margin-bottom:12px">امسح رمز QR بالمحفظة</h3>
+    <p style="font-size:13px;color:var(--txt-3);margin-bottom:16px">افتح ${Wallets[walletKey].name} وامسح الرمز</p>
+    <div id="qrCodeContainer" style="background:#fff;padding:20px;border-radius:12px;margin-bottom:16px;display:inline-block"></div>
+    <button class="btn btn--ghost btn--blk" id="wcCancelBtn">إلغاء</button></div>`;
   document.body.appendChild(modal);
   new QRCode(document.getElementById('qrCodeContainer'), { text: uri, width: 200, height: 200 });
   document.getElementById('wcCancelBtn').onclick = () => modal.remove();
 }
 
-// ============ Order Persistence ============
 function persistPendingOrder(order){
   if(!order) return;
   writeLS(K.pendingOrder, order);
@@ -905,10 +868,7 @@ function persistPendingOrder(order){
   state.currentOrder = order;
 }
 function restorePendingOrder(){
-  try{
-    const sess = sessionStorage.getItem('mcf_current_order');
-    if(sess){ const o = JSON.parse(sess); if(o && o.id) return o; }
-  }catch(e){}
+  try{ const sess = sessionStorage.getItem('mcf_current_order'); if(sess){ const o = JSON.parse(sess); if(o && o.id) return o; } }catch(e){}
   const stored = readLS(K.pendingOrder, null);
   if(stored && stored.id) return stored;
   const orders = Store.orders();
@@ -919,7 +879,6 @@ function clearPendingOrder(){
   localStorage.removeItem(K.pendingOrder);
 }
 
-// ============ Config Store ============
 const Cfg = {
   get(){return {...DEFAULT_CONFIG,...readLS(K.cfg,{})};},
   set(p){const n={...this.get(),...p};writeLS(K.cfg,n);applyBranding();return n;},
@@ -928,11 +887,7 @@ const Cfg = {
 async function pushConfigToSupabase(cfg){
   try{
     const sb = createClient(SUPABASE.url, SUPABASE.key);
-    const { error } = await sb.from('app_config').upsert({
-      id:'main', site_name:cfg.siteName, treasury:cfg.treasury,
-      platform_fee_sol:cfg.platformFeeSol, rent_estimate_sol:cfg.rentEstimateSol,
-      network:cfg.network, updated_at:new Date().toISOString(),
-    }, { onConflict:'id' });
+    const { error } = await sb.from('app_config').upsert({ id:'main', site_name:cfg.siteName, treasury:cfg.treasury, platform_fee_sol:cfg.platformFeeSol, rent_estimate_sol:cfg.rentEstimateSol, network:cfg.network, updated_at:new Date().toISOString() }, { onConflict:'id' });
     if(error){ console.warn(error.message); return false; }
     return true;
   }catch(e){ return false; }
@@ -982,7 +937,6 @@ function buildAdapter(p){return {signTransaction:tx=>p.signTransaction(tx),signA
 
 async function connectWallet(key){
   const w=Wallets[key];if(!w){toast('محفظة غير مدعومة','error');return false;}
-  // إذا كانت المحفظة متاحة (Extension أو داخل متصفح التطبيق) → اتصال مباشر
   if(w.detect()){
     try{
       const p=w.p;
@@ -999,12 +953,10 @@ async function connectWallet(key){
       return false;
     }
   }
-  // إذا لم تكن متاحة → استخدم WalletConnect
   toast('📱 جارٍ الاتصال عبر WalletConnect...','info',2000);
   return await connectViaWC(key);
 }
 
-// ============ Navigation ============
 const VIEWS = ['home','create-1','create-2','create-3','funding','connect-wallet','launching','success','liquidity','admin'];
 function navigate(v){
   if(!VIEWS.includes(v))v='home';
@@ -1067,61 +1019,44 @@ document.addEventListener('click',e=>{
   document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='a'){e.preventDefault();navigate('admin');}});
 })();
 
-// ============ Initialization — Auto-Redirect Recovery ============
 window.addEventListener('load', async ()=>{
   const remote = await pullConfigFromSupabase();
   if(remote){ writeLS(K.cfg, {...DEFAULT_CONFIG, ...remote}); }
-
   const pendingOrder = restorePendingOrder();
   if(pendingOrder){ state.currentOrder = pendingOrder; }
-
   const h = location.hash.replace('#','');
   let targetView = VIEWS.includes(h) ? h : 'home';
-
   const pendingWallet = sessionStorage.getItem('mcf_pending_wallet') || localStorage.getItem('mcf_pending_wallet');
   const savedWCUri = sessionStorage.getItem('mcf_wc_uri');
   const savedWCWallet = sessionStorage.getItem('mcf_wc_wallet');
-
-  // إذا كان هناك طلب معلق ومحفظة معلقة → اذهب لصفحة الربط
-  if(pendingOrder && (pendingWallet || savedWCUri)){
-    targetView = 'connect-wallet';
-  }
-
+  if(pendingOrder && (pendingWallet || savedWCUri)) targetView = 'connect-wallet';
   navigate(targetView);
   applyBranding();
   updateTokensBadge();
 
-  // ========== محاولة استعادة جلسة WalletConnect ==========
   if(savedWCUri || savedWCWallet || pendingWallet){
-    // مسح العلامات
     try{
       sessionStorage.removeItem('mcf_wc_uri');
       sessionStorage.removeItem('mcf_wc_wallet');
       sessionStorage.removeItem('mcf_pending_wallet');
       localStorage.removeItem('mcf_pending_wallet');
     }catch(e){}
-
     const client = await initWC();
     if(client){
-      // البحث عن جلسة نشطة
       const sessions = client.session.getAll();
       if(sessions.length > 0){
         const s = sessions[0];
         const walletKey = savedWCWallet || pendingWallet || 'phantom';
         await handleWCSession(s, walletKey);
-        if(state.currentOrder && !state.wallet){
+        if(state.currentOrder && state.wallet){
           state.currentOrder.creatorWallet = state.wallet.publicKey;
           Store.saveOrder(state.currentOrder);
-        }
-        if(state.currentOrder && state.wallet){
           toast('✅ تم استعادة الاتصال — جارٍ الإنشاء...','success',3000);
           setTimeout(()=>runPipeline(state.currentOrder), 800);
         }
         return;
       }
     }
-
-    // محاولة الربط التلقائي إذا كانت المحفظة متاحة (Extension)
     const walletKey = pendingWallet || savedWCWallet;
     if(walletKey && Wallets[walletKey]){
       const w = Wallets[walletKey];
@@ -1134,9 +1069,7 @@ window.addEventListener('load', async ()=>{
             if(ok && state.currentOrder){
               state.currentOrder.creatorWallet = state.wallet.publicKey;
               Store.saveOrder(state.currentOrder);
-              if($('#v-connect-wallet')?.classList.contains('active')){
-                setTimeout(()=>runPipeline(state.currentOrder), 500);
-              }
+              if($('#v-connect-wallet')?.classList.contains('active')){ setTimeout(()=>runPipeline(state.currentOrder), 500); }
             }
           }, 500);
           return;
@@ -1149,7 +1082,6 @@ window.addEventListener('load', async ()=>{
   }
 });
 
-// ============ Branding ============
 function applyBranding(){
   const c=Cfg.get();document.title=c.siteName+' — مصنع العملات الرقمية على سولانا';
   const isMain=c.network==='mainnet-beta';const badge=$('#networkBadge');
@@ -1159,7 +1091,6 @@ function applyBranding(){
 }
 function updateTokensBadge(){const n=Store.tokens().length;const b=$('#myTokensCount');if(n>0){b.hidden=false;b.textContent=n;}else b.hidden=true;}
 
-// ============ Step 1 ============
 $('#tName')?.addEventListener('input',e=>{$('#tNameCount').textContent=e.target.value.length;});
 $('#tDesc')?.addEventListener('input',e=>{$('#tDescCount').textContent=e.target.value.length;});
 $('#tLogo')?.addEventListener('change',e=>{
@@ -1195,14 +1126,12 @@ $('#next1')?.addEventListener('click',async()=>{
   try{await saveLogoToIDB(logo);navigate('create-2');}catch(e){err.textContent='فشل حفظ الشعار: '+e.message;err.hidden=false;}
 });
 
-// ============ Step 2 ============
 $('#burnToggle')?.addEventListener('change',e=>{$('#burnPctField').hidden=!e.target.checked;});
 $('#next2')?.addEventListener('click',()=>{
   const step2={liquiditySol:Number($('#liq').value)||0,burnPct:$('#burnToggle').checked?(Number($('#burnP').value)||0):0};
   sessionStorage.setItem('mcf_step2',JSON.stringify(step2));navigate('create-3');
 });
 
-// ============ Step 3 ============
 function renderReview(){
   const s1=JSON.parse(sessionStorage.getItem('mcf_step1')||'{}');
   const s2=JSON.parse(sessionStorage.getItem('mcf_step2')||'{}');
@@ -1248,7 +1177,6 @@ $('#createOrderBtn')?.addEventListener('click',()=>{
   updateCountdown(order.expiresAt);navigate('funding');toast('✅ تم إنشاء الطلب','success');
 });
 
-// ============ Countdown ============
 let countdownT=null;
 function updateCountdown(expiresAt){
   clearInterval(countdownT);const el=$('#fundingExpiry');
@@ -1266,7 +1194,6 @@ $('#cancelOrderBtn')?.addEventListener('click',()=>{
   navigate('home');
 });
 
-// ============ Verify Payment ============
 $('#verifyBtn')?.addEventListener('click',async()=>{
   const err=$('#errFunding');err.hidden=true;
   const sig=$('#txSig').value.trim();
@@ -1297,7 +1224,6 @@ $('#verifyBtn')?.addEventListener('click',async()=>{
   finally{btn.disabled=false;btn.textContent='🔍 التحقق من الدفع';}
 });
 
-// ============ Connect Wallet Modal ============
 $('#openWalletModalBtn')?.addEventListener('click',()=>{
   if(!state.currentOrder){toast('لا يوجد طلب','error');return;}
   refreshWalletModal();
@@ -1319,10 +1245,7 @@ $('#walletList')?.addEventListener('click',async e=>{
   const k=btn.dataset.wallet;const st=btn.querySelector('.wallet-item__status');
   st.textContent='جارٍ...';st.className='wallet-item__status';
   if(state.currentOrder) persistPendingOrder(state.currentOrder);
-  try{ 
-    sessionStorage.setItem('mcf_pending_wallet', k); 
-    localStorage.setItem('mcf_pending_wallet', k);
-  }catch(e){}
+  try{ sessionStorage.setItem('mcf_pending_wallet', k); localStorage.setItem('mcf_pending_wallet', k); }catch(e){}
   const ok=await connectWallet(k);
   if(ok){
     $('#walletModal').hidden=true;
@@ -1334,7 +1257,14 @@ $('#walletList')?.addEventListener('click',async e=>{
   }
 });
 
-// ============ Pipeline ============
+/* ============================================================
+   ★★★ PIPELINE — FIXED ORDER ★★★
+   1. Upload logo + metadata
+   2. Create Mint Account (with authority)
+   3. MintTo (سك العرض) — MUST come BEFORE revoke
+   4. Attach Metadata
+   5. Revoke Authorities (LAST) — only if supply > 0
+   ============================================================ */
 async function runPipeline(order){
   navigate('launching');
   $('#progressLog').innerHTML = '';
@@ -1342,11 +1272,13 @@ async function runPipeline(order){
     el.classList.remove('active','done','error');
     el.querySelector('.pipeline__sig').textContent='';
   });
+
   const log = (msg, cls='') => {
     const l = $('#progressLog');
     const d = document.createElement('div'); if(cls) d.className = cls;
     d.textContent = `[${new Date().toLocaleTimeString('en-GB')}] ${msg}`;
     l.appendChild(d); l.scrollTop = l.scrollHeight;
+    console.log('[Pipeline]', msg);
   };
   const setStep = (key, status, sig='') => {
     const el = $(`#pipelineBox .pipeline__item[data-step="${key}"]`);
@@ -1355,7 +1287,9 @@ async function runPipeline(order){
     if(status) el.classList.add(status);
     if(sig) el.querySelector('.pipeline__sig').textContent = sig.slice(0,8)+'…';
   };
+
   let conn, w, payer, mintKp, mintAddr, metaURL, logoURL, supplyRaw, decimals;
+
   try {
     const cfg = Cfg.get();
     if(!state.wallet) throw new Error('المحفظة غير مربوطة');
@@ -1366,6 +1300,7 @@ async function runPipeline(order){
     order.status = 'processing';
     Store.saveOrder(order);
 
+    /* ========== STEP 1: Upload Logo & Metadata ========== */
     setStep('upload','active');
     log('رفع الشعار والميتاداتا...');
     const logoFile = await getLogoFromIDB();
@@ -1394,6 +1329,7 @@ async function runPipeline(order){
     log(`✅ الميتاداتا مرفوعة`, 'ok');
     setStep('upload','done');
 
+    /* ========== STEP 2: Create Mint Account (with authority) ========== */
     setStep('mint','active');
     log('إنشاء حساب Mint...');
     decimals = Number(order.token.decimals) || 9;
@@ -1417,8 +1353,14 @@ async function runPipeline(order){
     log(`✅ Mint: ${mintAddr.slice(0,16)}...`, 'ok');
     setStep('mint','done',sig1);
 
+    /* ========== STEP 3: MintTo — سك العرض الكلي (MUST BE BEFORE REVOKE) ========== */
     setStep('mintTo','active');
-    log('سك العرض...');
+    log('سك العرض الكلي...');
+    // ✅ فحص أمان: تأكد أن صلاحية السك لا تزال موجودة
+    const mintInfoBefore = await getMint(conn, mintKp.publicKey, 'confirmed', TOKEN_PROGRAM_ID);
+    if(!mintInfoBefore.mintAuthority){
+      throw new Error('⚠️ صلاحية السك غير موجودة — لا يمكن سك العرض');
+    }
     const ata = getAssociatedTokenAddressSync(mintKp.publicKey, payer);
     const tx2 = new Transaction().add(
       ComputeBudgetProgram.setComputeUnitLimit({ units: 200000 }),
@@ -1434,6 +1376,7 @@ async function runPipeline(order){
     log(`✅ تم سك ${Number(order.token.supply).toLocaleString()} عملة`, 'ok');
     setStep('mintTo','done',sig2);
 
+    /* ========== STEP 4: Attach Metaplex Metadata ========== */
     setStep('metadata','active');
     log('إرفاق Metaplex Metadata...');
     const TOKEN_META_PROGRAM = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
@@ -1461,9 +1404,14 @@ async function runPipeline(order){
     log('✅ الميتاداتا مرفقة', 'ok');
     setStep('metadata','done',sig3);
 
+    /* ========== STEP 5: Revoke Authorities — LAST STEP ========== */
     setStep('authorities','active');
     let sig4 = null;
-    if(order.token.revokeMint || order.token.revokeFreeze){
+    // ✅ فحص أمان: تأكد أن العرض تم سكه قبل إلغاء الصلاحيات
+    const mintInfoAfter = await getMint(conn, mintKp.publicKey, 'confirmed', TOKEN_PROGRAM_ID);
+    if(mintInfoAfter.supply === 0n){
+      log('⚠️ العرض = 0 — تخطي إلغاء الصلاحيات','wrn');
+    } else if(order.token.revokeMint || order.token.revokeFreeze){
       log('إلغاء الصلاحيات...');
       const tx4 = new Transaction().add(ComputeBudgetProgram.setComputeUnitLimit({ units: 100000 }));
       if(order.token.revokeMint) tx4.add(createSetAuthorityInstruction(mintKp.publicKey, payer, 'MintTokens', null));
@@ -1480,6 +1428,7 @@ async function runPipeline(order){
     }
     setStep('authorities','done',sig4 || '');
 
+    /* ========== OPTIONAL: Burn ========== */
     if(order.burnPct > 0){
       log(`🔥 حرق ${order.burnPct}%...`);
       try{
@@ -1502,7 +1451,7 @@ async function runPipeline(order){
       mint: mintAddr, name: order.token.name, symbol: order.token.symbol,
       decimals: order.token.decimals, supply: order.token.supply,
       metadataUri: metaURL, logoUrl: logoURL, liquidityPlanned: order.liquiditySol,
-      signatures: { mint: sig1, metadata: sig3, authorities: sig4 },
+      signatures: { mint: sig1, mintTo: sig2, metadata: sig3, authorities: sig4 },
       network: order.network, creator: w.publicKey,
     });
 
@@ -1530,7 +1479,6 @@ async function runPipeline(order){
   }
 }
 
-// ============ Success ============
 function showSuccess(order, mintAddr){
   $('#successMint').textContent = mintAddr;
   const cluster = order.network === 'devnet' ? '?cluster=devnet' : '';
@@ -1548,7 +1496,6 @@ function showSuccess(order, mintAddr){
   toast('🎉 تم الإطلاق!','success',6000);
 }
 
-// ============ Liquidity Dashboard ============
 async function fetchDexData(mint){
   try{
     const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`, { cache:'no-store' });
@@ -1672,7 +1619,6 @@ function openTokenDetail(token){
 
 $('#refreshLiqBtn')?.addEventListener('click', ()=>{ renderLiquidity(); toast('🔄 تحديث...','info'); });
 
-// ============ Admin ============
 async function checkAdmin(){
   const sess = readLS(K.adminSess, null);
   if(sess?.ts && Date.now()-sess.ts < 4*60*60*1000){
@@ -1807,7 +1753,6 @@ $('#clearAllData')?.addEventListener('click', ()=>{
   Store.clearAll(); toast('تم المسح','info');
 });
 
-// ============ Restore Wallet ============
 (function restore(){
   const s = readLS(K.wallet, null);
   if(!s?.publicKey) return;
