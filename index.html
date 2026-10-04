@@ -23,7 +23,8 @@
 :root{--bg-root:#0A0D12;--bg-base:#12161D;--bg-card:#1A2029;--bg-input:#232A35;--bg-hover:#2A3241;--border-subtle:#232A35;--border:#2A3241;--border-strong:#3A4353;--accent:#FCD535;--accent-hover:#FFE251;--accent-press:#F0B90B;--accent-glow:rgba(252,213,53,.18);--txt:#F0F2F5;--txt-2:#B8C0CE;--txt-3:#7A8494;--txt-4:#545D6D;--txt-inv:#0A0D12;--success:#0ECB81;--success-bg:rgba(14,203,129,.1);--success-bd:rgba(14,203,129,.35);--danger:#F6465D;--danger-bg:rgba(246,70,93,.1);--danger-bd:rgba(246,70,93,.35);--warning:#F0B90B;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--r-pill:999px;--sh-accent:0 4px 20px rgba(252,213,53,.28);--sh-card:0 8px 32px rgba(0,0,0,.4);--ease:cubic-bezier(.4,0,.2,1);--ease-out:cubic-bezier(.16,1,.3,1);--f-ar:'Cairo',system-ui,sans-serif;--f-en:'Inter',system-ui,sans-serif;--f-mono:'JetBrains Mono',monospace}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:16px;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{font-family:var(--f-ar);background:var(--bg-root);color:var(--txt);line-height:1.65;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;background-image:radial-gradient(ellipse 70% 45% at 85% -15%,rgba(252,213,53,.09),transparent 55%),radial-gradient(ellipse 55% 35% at 8% 5%,rgba(14,203,129,.05),transparent 55%);background-attachment:fixed}
+body{font-family:var(--f-ar);background:var(--bg-root);color:var(--txt);line-height:1.65;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;background-image:radial-gradient(ellipse 70% 45% at 85% -15%,rgba(252,213,53,.09),transparent 55%),radial-gradient(ellipse 55% 35% at 8% 5%,rgba(14,203,129,.05),transparent 55%);background-attachment:fixed;user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none}
+input,textarea,select,[contenteditable="true"],.mint-box__addr,.mono,code,.log-box,.log-box div{user-select:text;-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text}
 img,svg{display:block;max-width:100%}
 button{cursor:pointer;background:none;border:0;color:inherit;font:inherit}
 input,textarea,select{font:inherit;color:inherit}
@@ -803,8 +804,7 @@ ul,ol{list-style:none}
 
 <script type="module">
 /* ============================================================
-   MEMECOIN FACTORY v37 — FINAL FIX
-   إصلاح إلغاء الصلاحيات باستخدام AuthorityType الرسمي
+   MEMECOIN FACTORY v38 — Mainnet Strict + No Text Selection
    ============================================================ */
 
 import { Buffer as BufferPolyfill } from 'buffer';
@@ -835,7 +835,7 @@ const DEFAULT_CONFIG = {
 };
 const ADMIN_PASSWORD = 'walidWALID';
 const RPC_DEFAULTS = {'devnet':'https://api.devnet.solana.com','mainnet-beta':'https://api.mainnet-beta.solana.com'};
-const K = { cfg:'mcf_cfg_v37', wallet:'mcf_wallet_v37', orders:'mcf_orders_v37', tokens:'mcf_tokens_v37', adminSess:'mcf_admin_sess_v37', pendingOrder:'mcf_pending_order_v37' };
+const K = { cfg:'mcf_cfg_v38', wallet:'mcf_wallet_v38', orders:'mcf_orders_v38', tokens:'mcf_tokens_v38', adminSess:'mcf_admin_sess_v38', pendingOrder:'mcf_pending_order_v38' };
 const SUPABASE = { url:'https://tbrllmgoqswelhnusimh.supabase.co', key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRicmxsbWdvcXN3ZWxobnVzaW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzY4NTQsImV4cCI6MjEwNjM1Mjg1NH0.JEQ-qckxmnaJZnMSdf-xc1-xYqFqFpu0307Cguut4cU', bucket:'token-images' };
 
 const WC_PROJECT_ID = '2c7a33a29c94d9e933812d50ef729b9e';
@@ -1247,6 +1247,19 @@ $('#createOrderBtn')?.addEventListener('click',()=>{
   const s1=JSON.parse(sessionStorage.getItem('mcf_step1')||'{}');
   const s2=JSON.parse(sessionStorage.getItem('mcf_step2')||'{}');
   if(!s1.name||!s1.symbol){err.textContent='بيانات ناقصة';err.hidden=false;return;}
+
+  // ✅ تأكيد صارم على Mainnet
+  if(cfg.network === 'mainnet-beta'){
+    const confirmed = confirm(
+      '⚠️ تنبيه مهم — شبكة MAINNET (حقيقية)\n\n' +
+      '• العملة هتتعمل على سولانا الحقيقية\n' +
+      '• محفظتك هتدفع رسوم شبكة حقيقية (~0.05 SOL)\n' +
+      '• لازم يكون عندك رصيد SOL كافي في محفظتك\n\n' +
+      'هل أنت متأكد من المتابعة؟'
+    );
+    if(!confirmed) return;
+  }
+
   const total=cfg.platformFeeSol+cfg.rentEstimateSol;
   const order={id:randId(),createdAt:nowIso(),status:'awaiting_payment',network:cfg.network,creatorWallet:null,
     token:{name:s1.name,symbol:s1.symbol,decimals:s1.decimals,supply:s1.supply,description:s1.description,telegram:s1.telegram,twitter:s1.twitter,website:s1.website,revokeMint:s1.revokeMint,revokeFreeze:s1.revokeFreeze,immutableMeta:s1.immutableMeta},
@@ -1259,8 +1272,9 @@ $('#createOrderBtn')?.addEventListener('click',()=>{
   $('#fundingAmount').textContent=amountStr+' SOL';
   $('#fundingAmount').dataset.copyValue=amountStr;
   $('#fundingTotal').textContent=amountStr+' SOL';
-  $('#fundingNetwork').textContent=order.network;
-  updateCountdown(order.expiresAt);navigate('funding');toast('✅ تم إنشاء الطلب','success');
+  $('#fundingNetwork').textContent=order.network === 'mainnet-beta' ? 'MAINNET 🌐' : 'DEVNET 🧪';
+  updateCountdown(order.expiresAt);navigate('funding');
+  toast(cfg.network === 'mainnet-beta' ? '⚠️ طلب حقيقي على Mainnet' : '✅ تم إنشاء الطلب', 'success');
 });
 
 let countdownT=null;
@@ -1339,10 +1353,7 @@ $('#walletList')?.addEventListener('click',async e=>{
 });
 
 /* ============================================================
-   ★★★ PIPELINE v37 — الإصلاح النهائي ★★★
-   - AuthorityType الرسمي من @solana/spl-token
-   - معاملة منفصلة لكل صلاحية
-   - فحص قبل الإلغاء + fallback آمن
+   ★★★ PIPELINE v38 — Mainnet Strict ★★★
    ============================================================ */
 let pipelineRunning = false;
 
@@ -1380,9 +1391,25 @@ async function runPipeline(order){
     if(!state.wallet) throw new Error('المحفظة غير مربوطة');
     if(!isValidSolanaAddress(cfg.treasury)) throw new Error('عنوان الخزينة غير صالح');
 
-    conn = new Connection(RPC_DEFAULTS[cfg.network], 'confirmed');
+    // ✅ RPC حسب الشبكة المختارة
+    const rpcUrl = RPC_DEFAULTS[cfg.network];
+    conn = new Connection(rpcUrl, 'confirmed');
     w = state.wallet;
     payer = new PublicKey(w.publicKey);
+
+    // ✅ log الشبكة
+    log(`🌐 الشبكة: ${cfg.network === 'mainnet-beta' ? 'MAINNET (حقيقي)' : 'DEVNET (تجريبي)'}`, cfg.network === 'mainnet-beta' ? 'wrn' : 'ok');
+    log(`📡 RPC: ${rpcUrl.slice(0, 40)}...`);
+
+    // ✅ فحص الرصيد على Mainnet
+    if(cfg.network === 'mainnet-beta'){
+      const balance = await conn.getBalance(payer);
+      const balanceSOL = balance / LAMPORTS_PER_SOL;
+      log(`💰 رصيد محفظتك: ${balanceSOL.toFixed(4)} SOL`);
+      if(balanceSOL < 0.01){
+        throw new Error(`⚠️ رصيدك غير كافي! تحتاج ~0.05 SOL لإنشاء العملة على Mainnet. رصيدك الحالي: ${balanceSOL.toFixed(4)} SOL`);
+      }
+    }
 
     order.status = 'processing';
     Store.saveOrder(order);
@@ -1516,17 +1543,15 @@ async function runPipeline(order){
       setStep('metadata','done',sig3);
     }
 
-    /* ========== STEP 5: Revoke Authorities — الإصلاح النهائي ========== */
+    /* ========== STEP 5: Revoke Authorities ========== */
     setStep('authorities','active');
     log('فحص الصلاحيات قبل الإلغاء...');
 
-    // ✅ جلب أحدث حالة من السلسلة
     mintInfo = await getMint(conn, mintKp.publicKey, 'confirmed', TOKEN_PROGRAM_ID);
     log(`📊 Mint Auth: ${mintInfo.mintAuthority ? 'موجودة' : 'ملغية'} | Freeze Auth: ${mintInfo.freezeAuthority ? 'موجودة' : 'ملغية'}`);
 
     let sig4 = null;
 
-    // ✅ إلغاء صلاحية السك — معاملة منفصلة + AuthorityType.MintTokens
     if (order.token.revokeMint && mintInfo.mintAuthority) {
       try {
         log('إلغاء صلاحية السك...');
@@ -1555,7 +1580,6 @@ async function runPipeline(order){
       log('⏭️ تخطي إلغاء صلاحية السك (ملغية أو غير مطلوبة)', 'wrn');
     }
 
-    // ✅ إلغاء صلاحية التجميد — معاملة منفصلة + AuthorityType.FreezeAccount
     if (order.token.revokeFreeze && mintInfo.freezeAuthority) {
       try {
         log('إلغاء صلاحية التجميد...');
@@ -1585,7 +1609,6 @@ async function runPipeline(order){
       log('⏭️ تخطي إلغاء صلاحية التجميد (ملغية أو غير مطلوبة)', 'wrn');
     }
 
-    // ✅ التحقق النهائي
     const finalCheck = await getMint(conn, mintKp.publicKey, 'confirmed', TOKEN_PROGRAM_ID);
     if ((!order.token.revokeMint || finalCheck.mintAuthority === null) &&
         (!order.token.revokeFreeze || finalCheck.freezeAuthority === null)) {
@@ -1630,6 +1653,7 @@ async function runPipeline(order){
     Store.saveOrder(order);
     clearPendingOrder();
 
+    log('🎉 اكتملت العملية بنجاح!', 'ok');
     await sleep(700);
     showSuccess(order, mintAddr);
     pipelineRunning = false;
@@ -1671,6 +1695,7 @@ function showSuccess(order, mintAddr){
     <div class="cost-box__row"><span>⛽ رسوم الشبكة</span><span>~${Cfg.get().rentEstimateSol.toFixed(4)} SOL</span></div>
     <div class="cost-box__row"><span>💧 السيولة المخططة</span><span>${(order.liquiditySol||0).toFixed(4)} SOL</span></div>
     <div class="cost-box__row"><span>🪙 إجمالي العرض</span><span>${Number(order.token.supply).toLocaleString()}</span></div>
+    <div class="cost-box__row"><span>🌐 الشبكة</span><span>${order.network === 'mainnet-beta' ? 'MAINNET' : 'DEVNET'}</span></div>
     <div class="cost-box__row"><span>🔗 Payment Tx</span><span class="mono" style="font-size:11px">${shortAddr(order.paidSignature,6)}</span></div>`;
   navigate('success');
   toast('🎉 تم الإطلاق!','success',6000);
@@ -1939,8 +1964,8 @@ $('#saveSettings')?.addEventListener('click', async ()=>{
   if (ok) toast('🌍 تم المزامنة لجميع الزوار','success',5000);
   else toast('⚠️ لم يتم المزامنة','error',5000);
   if (oldNetwork !== newNetwork) {
-    if (newNetwork === 'mainnet-beta') toast('⚠️ تم التحويل إلى Mainnet','error',8000);
-    else toast('✅ تم التحويل إلى Devnet','info',6000);
+    if (newNetwork === 'mainnet-beta') toast('⚠️ تم التحويل إلى Mainnet — كل التوكنات الجديدة ستكون حقيقية','error',8000);
+    else toast('✅ تم التحويل إلى Devnet — للاختبار فقط','info',6000);
   }
 });
 
